@@ -1,0 +1,279 @@
+openapi: 3.0.0
+info:
+  title: Edgex Foundry - Core Metadata Data API
+  description: This is the definition of the API for the Core Metadata service in the EdgeX Foundry IOT microservice platform. Core Metadata is responsible for all information related to provisioned devices and their associated services.
+  version: 2.x
+  
+servers:
+  - url: http://localhost:48081/api/v2
+    description: URL for local development and testing
+  
+components:
+  schemas:
+    AddDeviceRequest:
+      type: object
+      properties:
+        deviceName:
+          type: string
+        serviceName:
+          type: string
+        profileName:
+          type: string
+        adminState:
+          type: string
+        operatingState:
+          type: string
+        autoEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoEvent'
+        protocols:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ProtocolProperties'
+      required:
+        - deviceName
+        - serviceName
+        - profileName
+        - protocols
+    AddDeviceResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
+    AutoEvent:
+      type: object
+      properties:
+        frequency:
+          type: string
+        onChange:
+          type: boolean
+        resource:
+          type: string
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        created:
+          type: integer
+        modified:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        adminState:
+          type: string
+        operatingState:
+          type: string
+        addressableId:
+          type: string
+        addressableName:
+          type: string
+        lastConnected:
+          type: integer
+        lastReported:
+          type: integer
+        labels:
+          type: array
+          items:
+            type: string
+        location:
+          type: object
+        serviceId:
+          type: string
+        serviceName:
+          type: string
+        profileId:
+          type: string
+        profileName:
+          type: string
+        autoEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoEvent'
+        protocols:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ProtocolProperties'
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+    ProtocolProperties:
+      type: object
+      additionalProperties:
+        type: string
+    UpdateDeviceRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceName:
+          type: string
+        serviceName:
+          type: string
+        profileName:
+          type: string
+        adminState:
+          type: string
+        operatingState:
+          type: string
+        autoEvents:
+          type: array
+          items:
+            $ref: '#/components/schemas/AutoEvent'
+        protocols:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ProtocolProperties'
+      required:
+        - id
+        - deviceName
+        - serviceName
+        - profileName
+        - protocols
+    UpdateDeviceResponse:
+      type: object
+      properties:
+        message:
+          type: string
+  responses:
+    BadRequest:
+      description: "Request is in an invalid state"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: "The provided request conflicts with existing data"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: "The requested resource does not exist"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: "An unexpected error occurred on the server"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+paths:
+  /device:
+    post:
+      summary: Allows provisioning of a new device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDeviceRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddDeviceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Allows updates to an existing device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UpdateDeviceResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/id/{id}:
+    parameters: 
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: An ID of datatype string, by default a GUID.
+    get:
+      summary: Returns a device by ID
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete a device by ID
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/name/{name}:
+    parameters: 
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The name of the device you wish to load, datatype string.
+    get:
+      summary: Returns a device by name
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete a device by name
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
