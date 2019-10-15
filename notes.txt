@@ -1,0 +1,59 @@
+Fuji EdgeX API Notes RE: conversion to OpenAPI (Geneva)
+
+Responses (General)
+* Eliminate "413":
+            description: if the number returned exceeds the max limit.
+			reason -- Pagination is being included on all GET endpoints that return
+					  a list. We should always cap the number of results, never more than
+					  50 per page, for example. It should be impossible to return too many results.
+
+CORE-METADATA
+----------------------------------------
+GET /v1/addressable
+	Replaced with GET /v2/addressable/all
+
+/v1/addressable/address/{address}
+	Replaced with /v2/addressable/host/{host}
+	
+GET /v1/addressable/publisher/{publisher}
+  ** Removed -- protocol specific, doubt the need **
+
+GET /v1/addressable/topic/{topic}
+  ** Removed -- protocol specific, doubt the need **
+
+GET /v1/addressable/{id}
+	Removed -- Redundant with GET /v2/addressable/id/{id}
+	           Also ambiguous id vs name
+			   
+GET /v1/device
+    Replaced with GET /v2/device/all
+
+/v1/device/check/{token}
+	Removed -- Redundant with GET /v2/device/id/{id}, /device/name/{name}
+	
+/v1/device/profile/{profileId}:
+	Normalized as /v2/device/profile/id/{id}:
+	
+/v1/device/profilename/{profilename}:
+	Normalized as /v2/device/profile/name/{name}:
+
+/v1/device/service/{serviceId}:
+	Normalized as /v2/device/service/id/{id}:
+	
+/v1/device/servicename/{servicename}
+    Normalized as /v2/device/service/name/{name}:
+	
+** All /v1/command endpoints have been eliminated b/c we have a Core-command service **
+
+/v1/device/{id}/lastreported/{time}
+/v1/device/{id}/lastreported/{time}/{notify}
+/v1/device/name/{name}/lastreported/{time}
+/v1/device/name/{name}/lastreported/{time}/{notify}
+	Consolidated under /v2/device/lastreported -- New operation requires an ID
+
+/v1/device/{id}/lastconnected/{time}
+/v1/device/{id}/lastconnected/{time}/{notify}
+/v1/device/name/{name}/lastconnected/{time}
+/v1/device/name/{name}/lastconnected/{time}/{notify}
+	Consolidated under /v2/device/lastconnected -- New operation requires an ID
+	

@@ -10,7 +10,36 @@ servers:
   
 components:
   schemas:
+    AddAddressableRequest:
+      description: "A request to add a new addressable."
+      type: object
+      properties:
+        name:
+          type: string
+        protocol:
+          type: string
+        method:
+          type: string
+        address:
+          type: string
+        port:
+          type: integer
+        path:
+          type: string
+        publisher:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+        topic:
+          type: string
+      required:
+        - name
+        - protocol
+        - address
     AddDeviceRequest:
+      description: "A request to add a new device associated with a specific device service and conforming to a specific device profile."
       type: object
       properties:
         deviceName:
@@ -36,16 +65,36 @@ components:
         - serviceName
         - profileName
         - protocols
-    AddDeviceResponse:
+    Addressable:
       type: object
       properties:
         id:
           type: string
           format: uuid
-        message:
+        created:
+          type: integer
+        modified:
+          type: integer
+        name:
           type: string
-      required:
-        - id
+        protocol:
+          type: string
+        method:
+          type: string
+        address:
+          type: string
+        port:
+          type: integer
+        path:
+          type: string
+        publisher:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+        topic:
+          type: string
     AutoEvent:
       type: object
       properties:
@@ -104,14 +153,91 @@ components:
           additionalProperties:
             $ref: '#/components/schemas/ProtocolProperties'
     ErrorResponse:
+      description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
       properties:
         message:
           type: string
+    NewIdResponse:
+      description: "A response type for use in operations where new entities are created and the ID of the new entity should be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
     ProtocolProperties:
       type: object
       additionalProperties:
         type: string
+    SuccessResponse:
+      description: "A generic response type indicating a successful operation. An optional message property allows for miscellaneous information to be returned back to the caller." 
+      type: object
+      properties:
+        message:
+          type: string
+    UpdateAddressableRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        protocol:
+          type: string
+        method:
+          type: string
+        address:
+          type: string
+        port:
+          type: integer
+        path:
+          type: string
+        publisher:
+          type: string
+        user:
+          type: string
+        password:
+          type: string
+        topic:
+          type: string
+      required:
+        - id
+        - name
+        - protocol
+        - address
+    UpdateDeviceLastConnectedRequest:
+      description: "A request to update the last connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        time:
+          type: integer
+        notify:
+          type: boolean
+      required:
+      - id
+      - time
+    UpdateDeviceLastReportedRequest:
+      description: "A request to update the last reported timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        time:
+          type: integer
+        notify:
+          type: boolean
+      required:
+      - id
+      - time
     UpdateDeviceRequest:
       type: object
       properties:
@@ -142,11 +268,6 @@ components:
         - serviceName
         - profileName
         - protocols
-    UpdateDeviceResponse:
-      type: object
-      properties:
-        message:
-          type: string
   responses:
     BadRequest:
       description: "Request is in an invalid state"
@@ -172,7 +293,193 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    offsetParam:
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: The number of items to skip before starting to collect the result set.
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: The numbers of items to return.
 paths:
+  /addressable:
+    post:
+      summary: Allows definition of a new addressable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddAddressableRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewIdResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Allows updates to an existing addressable
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAddressableRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /addressable/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Given the entire range of addressables sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Addressable'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /addressable/host/{host}:
+    parameters: 
+    - name: host
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The hostname or IP address of the addressable you wish to load.
+    get:
+      summary: Returns an addressable by its host
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Addressable'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /addressable/id/{id}:
+    parameters: 
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: An ID of datatype string, by default a GUID.
+    get:
+      summary: Returns an addressable by ID
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Addressable'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete an addressable by ID
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /addressable/name/{name}:
+    parameters: 
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The name of the addressable you wish to load, datatype string.
+    get:
+      summary: Returns an addressable by name
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Addressable'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete an addressable by name
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /addressable/port/{port}:
+    parameters: 
+    - name: port
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: The port of the addressable you wish to load.
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Returns a list of all addressables listening on the specified port
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Addressable'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /device:
     post:
       summary: Allows provisioning of a new device
@@ -188,7 +495,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddDeviceResponse'
+                $ref: '#/components/schemas/NewIdResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -209,11 +516,63 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UpdateDeviceResponse'
+                $ref: '#/components/schemas/SuccessResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
           $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Given the entire range of devices sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/check/id/{id}:
+    parameters: 
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: An ID of datatype string, by default a GUID.
+    get:
+      summary: Returned status code indicates if the device exists (204) or not (404).
+      responses:
+        '204':
+          description: "Device exists"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/check/name/{name}:
+    parameters: 
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The name of the device you want to check on.
+    get:
+      summary: Returned status code indicates if the device exists (204) or not (404).
+      responses:
+        '204':
+          description: "Device exists"
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
   /device/id/{id}:
@@ -247,6 +606,42 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/ServerError'
+  /device/lastconnected:
+    put:
+      summary: Updates the "last connected" timestamp for the specified device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceLastConnectedRequest'
+      responses:
+        '204':
+          description: "Update successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/lastreported:
+    put:
+      summary: Updates the "last reported" timestamp for the specified device
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceLastReportedRequest'
+      responses:
+        '204':
+          description: "Update successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
   /device/name/{name}:
     parameters: 
     - name: name
@@ -277,3 +672,129 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/ServerError'
+  /device/label/{label}:
+    parameters: 
+    - name: label
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The label of the devices you wish to load, datatype string.
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Returns all devices assigned to the specified label
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/profile/id/{id}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The unique id of a device profile
+    get:
+      summary: Returns all devices assigned to the specified device profile
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/profile/name/{name}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The name identifying a device profile
+    get:
+      summary: Returns all devices assigned to the specified device profile
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/service/id/{id}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The unique id of a device service
+    get:
+      summary: Returns all devices assigned to the specified device service
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /device/service/name/{name}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The name identifying a device service
+    get:
+      summary: Returns all devices assigned to the specified device service
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+      
