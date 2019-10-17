@@ -9,6 +9,8 @@ Responses (General)
 
 All endpoints returning a list support pagination via offset (starting index) and limit (items per page)
 
+Question, should I return a "GetDeviceResponse" rather than just the "Device" model?
+
 CORE-METADATA
 ----------------------------------------
 GET /v1/addressable
