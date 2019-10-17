@@ -7,6 +7,8 @@ Responses (General)
 					  a list. We should always cap the number of results, never more than
 					  50 per page, for example. It should be impossible to return too many results.
 
+All endpoints returning a list support pagination via offset (starting index) and limit (items per page)
+
 CORE-METADATA
 ----------------------------------------
 GET /v1/addressable
@@ -57,3 +59,9 @@ GET /v1/device
 /v1/device/name/{name}/lastconnected/{time}/{notify}
 	Consolidated under /v2/device/lastconnected -- New operation requires an ID
 	
+GET /v1/deviceprofile
+    Replaced with GET /v2/deviceprofile/all
+	
+GET /v1/deviceprofile/{id}
+   Removed -- Redundant with GET /v2/deviceprofile/id/{id}
+	           Also ambiguous id vs name

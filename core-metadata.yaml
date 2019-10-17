@@ -65,6 +65,12 @@ components:
         - serviceName
         - profileName
         - protocols
+    AddDeviceProfileRequest:
+      description: "A request to add a new device profile. When making this request, the ID property should not be populated."
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/DeviceProfile'
     Addressable:
       type: object
       properties:
@@ -104,6 +110,45 @@ components:
           type: boolean
         resource:
           type: string
+    Command:
+      type: object
+      properties:
+        created:
+          type: integer
+        modified:
+          type: integer
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        get:
+          $ref: '#/components/schemas/CommandAction'
+        put:
+          $ref: '#/components/schemas/CommandAction'
+    CommandAction:
+      type: object
+      properties:
+        path:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/CommandResponse'
+        url:
+          type: string
+    CommandResponse:
+      description: 'In the context of a device profile, defines an expected response from a command issued to a device via the core-command service.'
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        expectedValues:
+          type: array
+          items:
+            type: string
     Device:
       type: object
       properties:
@@ -152,6 +197,59 @@ components:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ProtocolProperties'
+    DeviceProfile:
+      description: "A profile defining a class of device to be onboarded, including its capabilities and data format."
+      type: object
+      properties:
+        created:
+          type: integer
+        modified:
+          type: integer
+        description:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        manufacturer:
+          type: string
+        model:
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+        deviceResources:
+          type: array
+          items:
+            $ref: '#/components/schemas/DeviceResource'
+        deviceCommands:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProfileResource'
+        coreCommands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Command'
+      required:
+        - name
+    DeviceResource:
+      description: "DeviceResource represents a value on a device that can be read or written."
+      type: object
+      properties:
+        description:
+          type: string
+        name:
+          type: string
+        tag:
+          type: string
+        properties:
+          $ref: '#/components/schemas/ProfileProperty'
+        attributes:
+          type: object
+          additionalProperties:
+             type: string
     ErrorResponse:
       description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
@@ -169,15 +267,106 @@ components:
           type: string
       required:
         - id
+    ProfileProperty:
+      description: "A property defining the data type of a device's reading"
+      type: object
+      properties:
+        value:
+          $ref: '#/components/schemas/PropertyValue'
+        units:
+          $ref: '#/components/schemas/Units'
+    ProfileResource:
+      description: "Defines read/write capabilities native to the device"
+      type: object
+      properties:
+        name:
+          type: string
+        get:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceOperation'
+        set:
+          type: array
+          items:
+            $ref: '#/components/schemas/ResourceOperation'
+    PropertyValue:
+      description: "Defines constraints with regard to the range of acceptable values assigned to an event reading and defined as a property within a device profile."
+      type: object
+      properties:
+        type:
+          type: string
+        readWrite:
+          type: string
+        minimum:
+          type: string
+        maximum:
+          type: string
+        defaultValue:
+          type: string
+        size:
+          type: string
+        mask:
+          type: string
+        shift:
+          type: string
+        scale:
+          type: string
+        offset:
+          type: string
+        base:
+          type: string
+        assertion:
+          type: string
+        precision:
+          type: string
+        floatEncoding:
+          type: string
+        mediaType:
+          type: string
     ProtocolProperties:
       type: object
       additionalProperties:
         type: string
+    ResourceOperation:
+      description: "Defines an operation of which a device is capable."
+      type: object
+      properties:
+        index:
+          type: string
+        operation:
+          type: string
+        object:
+          type: string
+        deviceResource:
+          type: string
+        parameter:
+          type: string
+        resource:
+          type: string
+        deviceCommand:
+          type: string
+        secondary:
+          type: array
+          items:
+            type: string
+        mappings:
+          type: object
+          additionalProperties:
+            type: string
     SuccessResponse:
       description: "A generic response type indicating a successful operation. An optional message property allows for miscellaneous information to be returned back to the caller." 
       type: object
       properties:
         message:
+          type: string
+    Units:
+      type: object
+      properties:
+        type:
+          type: string
+        readWrite:
+          type: string
+        defaultValue:
           type: string
     UpdateAddressableRequest:
       type: object
@@ -268,6 +457,12 @@ components:
         - serviceName
         - profileName
         - protocols
+    UpdateDeviceProfileRequest:
+      description: "A request to update an existing device profile. When making this request, populate the ID and name properties."
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/DeviceProfile'
   responses:
     BadRequest:
       description: "Request is in an invalid state"
@@ -797,4 +992,215 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
-      
+  /deviceprofile:
+    post:
+      summary: Allows creation of a new device profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDeviceProfileRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewIdResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: Allows updates to an existing device profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceProfileRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceprofile/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceprofile/id/{id}:
+    parameters: 
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returns a device profile by ID"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: "Delete a device profile by ID. This operation will fail if there are devices actively using the profile."
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceprofile/name/{name}:
+    parameters: 
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "The unique name of a device profile"
+    get:
+      summary: "Returns a device profile by its name"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: "Delete a device profile by its unique name. This operation will fail if there are devices actively using the profile."
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceprofile/manufacturer/{manufacturer}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: manufacturer
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "The manufacturer for the device profiles in which you're interested."
+    get:
+      summary: "Returns a list of device profiles for the given manufacturer."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /v1/deviceprofile/manufacturer/{manufacturer}/model/{model}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: manufacturer
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "The manufacturer for the device profiles in which you're interested."
+    - name: model
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "The model of the device for the device profiles in which your interested."
+    get:
+      summary: "Returns a list of device profiles for the given manufacturer and model."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /v1/deviceprofile/model/{model}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: model
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "The model of the device for the device profiles in which your interested."
+    get:
+      summary: "Returns a list of device profiles for the given manufacturer and model."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
