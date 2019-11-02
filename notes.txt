@@ -11,6 +11,18 @@ All endpoints returning a list support pagination via offset (starting index) an
 
 Question, should I return a "GetDeviceResponse" rather than just the "Device" model?
 
+** 23-Oct-19 I decided not to do this. Let's say I call the Device returned from GET /device a
+"Device Response". Well what about the Addressable that's nested in it? That Addressable can
+be fetched from its own endpoint. Should it be "AddressableResponse"? So we would have an
+AddressableResponse as a child of a DeviceResponse, which I don't like but one could argue it
+forms a normative pattern. But what about child types that are not obtainable via their own
+endpoint? For example a Device also has an array of AutoEvents. Should I call this AutoEventResponse?
+That seems odd. The AutoEvent type is also part of the AddDeviceRequest, so I can't call it 
+a "Response".
+
+In thinking about it, if you GET /device what you want in return are Devices and you want to 
+refer to them as such. Not as "DeviceResponses". **
+
 CORE-METADATA
 ----------------------------------------
 GET /v1/addressable
@@ -67,3 +79,27 @@ GET /v1/deviceprofile
 GET /v1/deviceprofile/{id}
    Removed -- Redundant with GET /v2/deviceprofile/id/{id}
 	           Also ambiguous id vs name
+			   
+** All /devicereport routes have been eliminated b/c of deprecation **
+
+GET /v1/deviceservice/addressable/{addressableId}:
+	The description in the current RAML says
+	"Find all device servicess associated to the Addressable with the specified addressable database generated identifier. List may be empty if no device service match."
+	I believe this is incorrect and there is no 1 to many relationship between an addressable
+	and device services. I am going to change the Swagger definition according to my understanding.
+	
+PUT /v1/deviceservice/{id}/adminstate/{adminState}:
+PUT /v1/deviceservice/{id}/opstate/{opState}:
+PUT /v1/deviceservice/name/{name}/adminstate/{adminState}:
+PUT /v1/deviceservice/name/{name}/opstate/{opState}:
+I am doing away with the "update by name" endpoints. If someone has a  use case that requires
+them to be added back, can do that. It seems to me highly likely that if you're going to be 
+changing these states you wil have the ID, so no need to support both.
+
+PUT /v1/deviceservice/id/{id}/lastconnected/{time}:
+PUT /v1/deviceservice/id/{id}/lastreported/{time}:
+PUT /v1/deviceservice/name/{name}/lastconnected/{time}:
+PUT /v1/deviceservice/name/{name}/lastreported/{time}:
+I am going to hold off on migrating these endpoints. A device service doesn't "last connect" or
+"last report". A device does. These timestamps in the context of a device service, I believe,
+are meaningless.

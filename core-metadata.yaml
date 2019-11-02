@@ -71,6 +71,29 @@ components:
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
+    AddDeviceServiceRequest:
+      description: "A request to add a new DeviceService - name must be unique and the specified addressable must already exist"
+      type: object
+      properties:
+        deviceServiceName:
+          type: string
+        addressableName:
+          type: string
+        operatingState:
+          description: "Can only be set to ENABLED or DISABLED"
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+        adminState:
+          description: "Can only be set to LOCKED or UNLOCKED"
+          type: string
+      required:
+      - deviceServiceName
+      - addressableName
+      - operatingState
+      - adminState
     Addressable:
       type: object
       properties:
@@ -250,6 +273,35 @@ components:
           type: object
           additionalProperties:
              type: string
+    DeviceService:
+      description: "A DeviceService is responsible for proxying connectivity between a set of devices and the EdgeX Foundry core services."
+      type: object
+      properties:
+        created:
+          type: integer
+        modified:
+          type: integer
+        description:
+          type: string
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        lastConnected:
+          type: integer
+        lastReported:
+          type: integer
+        operatingState:
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+        addressable:
+          $ref: '#/components/schemas/Addressable'
+        adminState:
+          type: string
     ErrorResponse:
       description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
@@ -399,6 +451,18 @@ components:
         - name
         - protocol
         - address
+    UpdateAdminStateRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        adminState:
+          description: "Can only be set to LOCKED or UNLOCKED"
+          type: string
+      required:
+      - deviceId
+      - adminState
     UpdateDeviceLastConnectedRequest:
       description: "A request to update the last connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
       type: object
@@ -463,6 +527,45 @@ components:
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
+    UpdateDeviceServiceRequest:
+      description: "A request to update an existing DeviceService"
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceServiceName:
+          type: string
+        addressableName:
+          type: string
+        operatingState:
+          description: "Can only be set to ENABLED or DISABLED"
+          type: string
+        labels:
+          type: array
+          items:
+            type: string
+        adminState:
+          description: "Can only be set to LOCKED or UNLOCKED"
+          type: string
+      required:
+      - id
+      - deviceServiceName
+      - addressableName
+      - operatingState
+      - adminState
+    UpdateOperatingStateRequest:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          format: uuid
+        operatingState:
+          description: "Can only be set to ENABLED or DISABLED"
+          type: string
+      required:
+      - deviceId
+      - operatingState
   responses:
     BadRequest:
       description: "Request is in an invalid state"
@@ -1148,7 +1251,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/ServerError'
-  /v1/deviceprofile/manufacturer/{manufacturer}/model/{model}:
+  /deviceprofile/manufacturer/{manufacturer}/model/{model}:
     parameters:
     - $ref: '#/components/parameters/offsetParam'
     - $ref: '#/components/parameters/limitParam'
@@ -1163,7 +1266,7 @@ paths:
       required: true
       schema:
         type: string
-      description: "The model of the device for the device profiles in which your interested."
+      description: "The model of the device profiles in which you're interested."
     get:
       summary: "Returns a list of device profiles for the given manufacturer and model."
       responses:
@@ -1179,7 +1282,7 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '500':
           $ref: '#/components/responses/ServerError'
-  /v1/deviceprofile/model/{model}:
+  /deviceprofile/model/{model}:
     parameters:
     - $ref: '#/components/parameters/offsetParam'
     - $ref: '#/components/parameters/limitParam'
@@ -1188,9 +1291,9 @@ paths:
       required: true
       schema:
         type: string
-      description: "The model of the device for the device profiles in which your interested."
+      description: "The model assigned to the device profiles in which you're interested."
     get:
-      summary: "Returns a list of device profiles for the given manufacturer and model."
+      summary: "Returns a list of device profiles for the given model."
       responses:
         '200':
           description: "OK"
@@ -1202,5 +1305,291 @@ paths:
                   $ref: '#/components/schemas/DeviceProfile'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceprofile/label/{label}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: label
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "A label applied to the device profiles in which you're interested."
+    get:
+      summary: "Find all DeviceProfiles having at least one label matching the label provided"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceProfile'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice:
+    post:
+      summary: "Add a new DeviceService - name must be unique.  The Addressable must already exist and can be referenced by an included Addressable object containing the Addressable's id or name."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddDeviceServiceRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NewIdResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: "Returned if the specified addressable is not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    put:
+      summary: "Allows updates to an existing device service"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDeviceServiceRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: "Returned if the specified device service is not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Given the entire range of device services sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/id/{id}:
+    parameters: 
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: An ID of datatype string, by default a GUID.
+    get:
+      summary: Returns a device service by ID
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceService'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete a device service by ID
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/name/{name}:
+    parameters: 
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The unique name of the device service you want to load.
+    get:
+      summary: Returns a device service by its unique name
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceService'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+    delete:
+      summary: Delete a device service by its unique name
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/addressable/id/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: The unique ID of an addressable
+    get:
+      summary: Returns the device service associated with the specified addressable
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/addressable/name/{name}:
+    parameters:
+    - name: name
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The unique name of an addressable
+    get:
+      summary: Returns the device service associated with the specified addressable
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceService'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/label/{label}:
+    parameters:
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    - name: label
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "A label applied to the device services in which you're interested."
+    get:
+      summary: "Find all DeviceServices having at least one label matching the label provided"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/DeviceService'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/adminstate:
+    put:
+      summary: "Update the AdminState for a specific device service"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAdminStateRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: "Returned if the specified device service is not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /deviceservice/operatingstate:
+    put:
+      summary: "Update the OperatingState for a specific device service"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOperatingStateRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: "Returned if the specified device service is not found"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/ServerError'
