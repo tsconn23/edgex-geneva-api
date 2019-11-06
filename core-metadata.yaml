@@ -38,6 +38,17 @@ components:
         - name
         - protocol
         - address
+    AddAddressableResponse:
+      description: "A response type for use in adding an Addressable. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
     AddDeviceRequest:
       description: "A request to add a new device associated with a specific device service and conforming to a specific device profile."
       type: object
@@ -65,12 +76,34 @@ components:
         - serviceName
         - profileName
         - protocols
+    AddDeviceResponse:
+      description: "A response type for use in adding a Device. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
     AddDeviceProfileRequest:
       description: "A request to add a new device profile. When making this request, the ID property should not be populated."
       type: object
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
+    AddDeviceProfileResponse:
+      description: "A response type for use in adding a Device Profile. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
     AddDeviceServiceRequest:
       description: "A request to add a new DeviceService - name must be unique and the specified addressable must already exist"
       type: object
@@ -94,6 +127,17 @@ components:
       - addressableName
       - operatingState
       - adminState
+    AddDeviceServiceResponse:
+      description: "A response type for use in adding a Device Service. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
     Addressable:
       type: object
       properties:
@@ -308,17 +352,6 @@ components:
       properties:
         message:
           type: string
-    NewIdResponse:
-      description: "A response type for use in operations where new entities are created and the ID of the new entity should be returned to the caller. An optional message property allows for miscellaneous information to be returned."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        message:
-          type: string
-      required:
-        - id
     ProfileProperty:
       description: "A property defining the data type of a device's reading"
       type: object
@@ -626,7 +659,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewIdResponse'
+                $ref: '#/components/schemas/AddAddressableResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -793,7 +826,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewIdResponse'
+                $ref: '#/components/schemas/AddDeviceResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -1110,7 +1143,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewIdResponse'
+                $ref: '#/components/schemas/AddDeviceProfileResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -1349,7 +1382,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/NewIdResponse'
+                $ref: '#/components/schemas/AddDeviceServiceResponse'
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':

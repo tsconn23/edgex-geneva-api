@@ -23,6 +23,11 @@ a "Response".
 In thinking about it, if you GET /device what you want in return are Devices and you want to 
 refer to them as such. Not as "DeviceResponses". **
 
+** 6-Nov-19 Preliminary review at the Phoenix F2F indicated a preference from the community for
+specific "Add" responses rather than a "NewIdResponse" shared by the Add endpoints. The opinion
+was that not having specific responses eliminated useful context, particularly if the request/response
+types were used with some other transport (such as pub/sub) **
+
 CORE-METADATA
 ----------------------------------------
 GET /v1/addressable
