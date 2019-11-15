@@ -350,6 +350,8 @@ components:
       description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
       properties:
+        code:
+          type: integer
         message:
           type: string
     ProfileProperty:
@@ -1386,11 +1388,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
-          description: "Returned if the specified addressable is not found"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
         '500':
@@ -1413,11 +1411,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
-          description: "Returned if the specified device service is not found"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
         '409':
           $ref: '#/components/responses/Conflict'
         '500':
@@ -1593,11 +1587,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
-          description: "Returned if the specified device service is not found"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
   /deviceservice/operatingstate:
@@ -1619,10 +1609,6 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
-          description: "Returned if the specified device service is not found"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'

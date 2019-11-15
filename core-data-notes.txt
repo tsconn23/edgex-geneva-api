@@ -1,0 +1,12 @@
+- I have left ValueDescriptor in the model because, from previous working group meetings, we will still need some mechanism to define min/max, defaults, etc.
+  It has been expressed that these constraints should be used at the time that the reading is created but not necessarily as a runtime check for every reading
+  we ingest. Therefore I believe there is still a need for a model, as discussions stand today, to support the definition and evaluation of a value descriptor
+  just not as a pointer from a reading as we do today.
+
+  You'll see that the readings as currently defined do not have pointers to the value descriptors. We could add the constraint properties (min/max) if we need 
+  to ensure a value is in a supported range independent of the device service (or 3rd party application) generating the readings. 
+
+- Value descriptor
+  I have left "FloatEncoding" and "MediaType" off the descriptor. "FloatEncoding" can simply be specified at the time a reading is created (such as "base64").
+  MediaType can be done the same way b/c I don't see the MediaType property in the ValueDescriptor today as a constraint. If it were, we should support and
+  array so that multiples can be specified (multiple image, sound, video formats for example)

@@ -9,6 +9,6 @@ To view the Swagger definition:
 
 2.) Choose File --> Import from URL
 
-3.) Supply a URL to one of the YAML files in the repo
+3.) Choose a YAML file to view, then click the "RAW" button and use that URL
 
 4.) You should see the Swagger UI output on the right.

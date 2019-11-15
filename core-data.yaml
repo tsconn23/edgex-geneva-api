@@ -1,0 +1,238 @@
+openapi: 3.0.0
+info:
+  title: Edgex Foundry - Core Data API
+  description: This is the definition of the API for the Core Data service in the EdgeX Foundry IOT microservice platform. Core Data is responsible for storing event and reading data ingested from edge devices in the environment.
+  version: 2.x
+  
+servers:
+  - url: http://localhost:48080/api/v2
+    description: URL for local development and testing
+  
+components:
+  schemas:
+    AddEventRequest:
+      description: "A request for ingesting a new event/reading data"
+      type: object
+      properties:
+        device:
+          description: "The name of the device from which the event originated"
+          type: string
+        origin:
+          description: "A Unix timestamp indicating when the event was originated at the source device (can support nanoseconds)"
+          type: integer
+        readings:
+          description: "One or more readings captured at the time of the event"
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseReading'
+      required:
+        - device
+        - origin
+        - readings
+    AddEventResponse:
+      description: "A response type for use in adding a new Event. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        message:
+          type: string
+      required:
+        - id
+    BaseReading:
+      description: "A base reading type containing common properties from which more specific reading types inherit. This definition should not be implemented but is used elsewhere to indicate support for a mixed list of simple/binary readings in a single event."
+      type: object
+      properties:
+        created:
+          description: "A Unix timestamp indicating when (if) the reading was initially persisted to a database."
+          type: integer
+        device:
+          description: "The name of the device from which the reading originated"
+          type: string
+        id:
+          description: "The unique identifier for the reading"
+          type: string
+          format: uuid
+        labels:
+          description: "One or more custom labels that can be assigned to a reading"
+          type: array
+          items:
+            type: string
+        modified:
+          description: "A Unix timestamp indicating the most recent modification of the reading data in a persistent database."
+          type: integer
+        origin:
+          description: "A Unix timestamp indicating when the reading was originated at the source device (can support nanoseconds)"
+          type: integer
+        pushed:
+          description: "A Unix timestamp indicating when the reading was permanently pushed to a northside app/service"
+          type: integer
+    BinaryReading:
+      description: "An event reading for a binary data type"
+      allOf:
+        - $ref: '#/components/schemas/BaseReading'
+        - type: object
+          properties:
+            binaryValue:
+              description: "If the value of the reading is binary, it will be found in this property as a byte array"
+              type: array
+              items: 
+                type: object
+            mediaType:
+              description: "E.g. MIME Type, indicates what the content type of the binaryValue property is if it's populated."
+              type: string
+    ErrorResponse:
+      description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+    Event:
+      description: "A discrete event containing one or more readings"
+      properties:
+        created:
+          description: "A Unix timestamp indicating when (if) the event was initially persisted to a database."
+          type: integer
+        device:
+          description: "The name of the device from which the event originated"
+          type: string
+        id:
+          description: "The unique identifier for the event"
+          type: string
+          format: uuid
+        modified:
+          description: "A Unix timestamp indicating the most recent modification of the event data in a persistent database."
+          type: integer
+        origin:
+          description: "A Unix timestamp indicating when the event was originated at the source device (can support nanoseconds)"
+          type: integer
+        pushed:
+          description: "A Unix timestamp indicating when the event was permanently pushed to a northside app/service"
+          type: integer
+        readings:
+          description: "One or more readings captured at the time of the event"
+          type: array
+          items:
+            $ref: '#/components/schemas/BaseReading'
+    SimpleReading:
+      description: "An event reading for a simple data type"
+      allOf:
+        - $ref: '#/components/schemas/BaseReading'
+        - type: object
+          properties:
+            floatEncoding:
+              description: "Indicates how a float value is encoded, if the value property contains a float."
+              type: string
+            formatting:
+              description: "A format string, if required, for the reading value"
+              type: string
+            type:
+              description: "Indicates the datatype of the value property"
+              type: string
+            uomLabel:
+              description: "A custom unit-of-measure label"
+              type: string
+            value:
+              description: "A string representation of the reading's value"
+              type: string
+    ValueDescriptor:
+      description: "Defines constraints for ingested data via SimpleReadings"
+      properties:
+        created:
+          description: "A Unix timestamp indicating when (if) the value descriptor was initially persisted to a database."
+          type: integer
+        defaultValue:
+          description: "A default value for a value descriptor supporting a simple datatype"
+          type: object
+        description:
+          description: "A simple description supporting the value descriptor"
+          type: string
+        formatting:
+          description: "A format string, if required, for the reading value"
+          type: string
+        id:
+          description: "The unique identifier for the value descriptor"
+          type: string
+          format: uuid
+        labels:
+          description: "One or more custom labels that can be assigned to a value descriptor's reading"
+          type: array
+          items:
+            type: string
+        max:
+          description: "A maximum supported value for a numeric value descriptor"
+          type: object
+        min:
+          description: "A minimum supported value for a numeric value descriptor"
+          type: object
+        modified:
+          description: "A Unix timestamp indicating the most recent modification of the event data in a persistent database."
+          type: integer
+        name:
+          description: "A unique name identifying the value descriptor"
+          type: string
+        type:
+          description: "Indicates the datatype of readings associated with the value descriptor"
+          type: string
+        uomLabel:
+          description: "A custom unit-of-measure label"
+          type: string
+  responses:
+    BadRequest:
+      description: "Request is in an invalid state"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    Conflict:
+      description: "The provided request conflicts with existing data"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    NotFound:
+      description: "The requested resource does not exist"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+    ServerError:
+      description: "An unexpected error occurred on the server"
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+paths:
+  /event:
+    post:
+      summary: "Allows for the ingestion of event/reading data"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddEventRequest'
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddEventResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          description: "The device in the AddEventRequest does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+            
+
+        
+        
