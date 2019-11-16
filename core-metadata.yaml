@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  title: Edgex Foundry - Core Metadata Data API
+  title: Edgex Foundry - Core Metadata API
   description: This is the definition of the API for the Core Metadata service in the EdgeX Foundry IOT microservice platform. Core Metadata is responsible for all information related to provisioned devices and their associated services.
   version: 2.x
   
@@ -11,6 +11,8 @@ servers:
 components:
   schemas:
     AddAddressableRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to add a new addressable."
       type: object
       properties:
@@ -39,6 +41,8 @@ components:
         - protocol
         - address
     AddAddressableResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A response type for use in adding an Addressable. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
       type: object
       properties:
@@ -50,6 +54,8 @@ components:
       required:
         - id
     AddDeviceRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to add a new device associated with a specific device service and conforming to a specific device profile."
       type: object
       properties:
@@ -77,6 +83,8 @@ components:
         - profileName
         - protocols
     AddDeviceResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A response type for use in adding a Device. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
       type: object
       properties:
@@ -88,12 +96,16 @@ components:
       required:
         - id
     AddDeviceProfileRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to add a new device profile. When making this request, the ID property should not be populated."
       type: object
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
     AddDeviceProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A response type for use in adding a Device Profile. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
       type: object
       properties:
@@ -105,6 +117,8 @@ components:
       required:
         - id
     AddDeviceServiceRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to add a new DeviceService - name must be unique and the specified addressable must already exist"
       type: object
       properties:
@@ -128,6 +142,8 @@ components:
       - operatingState
       - adminState
     AddDeviceServiceResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A response type for use in adding a Device Service. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
       type: object
       properties:
@@ -205,6 +221,8 @@ components:
         url:
           type: string
     CommandResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: 'In the context of a device profile, defines an expected response from a command issued to a device via the core-command service.'
       type: object
       properties:
@@ -216,6 +234,22 @@ components:
           type: array
           items:
             type: string
+    CorrelatedResponse:
+      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+      required:
+        - correlationId
+    CorrelatedRequest:
+      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+      required:
+        - correlationId
     Device:
       type: object
       properties:
@@ -347,6 +381,8 @@ components:
         adminState:
           type: string
     ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
       properties:
@@ -441,6 +477,8 @@ components:
           additionalProperties:
             type: string
     SuccessResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A generic response type indicating a successful operation. An optional message property allows for miscellaneous information to be returned back to the caller." 
       type: object
       properties:
@@ -456,6 +494,8 @@ components:
         defaultValue:
           type: string
     UpdateAddressableRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       type: object
       properties:
         id:
@@ -487,6 +527,8 @@ components:
         - protocol
         - address
     UpdateAdminStateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       type: object
       properties:
         deviceId:
@@ -499,6 +541,8 @@ components:
       - deviceId
       - adminState
     UpdateDeviceLastConnectedRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to update the last connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
       type: object
       properties:
@@ -513,6 +557,8 @@ components:
       - id
       - time
     UpdateDeviceLastReportedRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to update the last reported timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
       type: object
       properties:
@@ -527,6 +573,9 @@ components:
       - id
       - time
     UpdateDeviceRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
+      description: "A request to update an existing device definition."
       type: object
       properties:
         id:
@@ -557,12 +606,16 @@ components:
         - profileName
         - protocols
     UpdateDeviceProfileRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to update an existing device profile. When making this request, populate the ID and name properties."
       type: object
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
     UpdateDeviceServiceRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request to update an existing DeviceService"
       type: object
       properties:
@@ -590,6 +643,8 @@ components:
       - operatingState
       - adminState
     UpdateOperatingStateRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       type: object
       properties:
         deviceId:

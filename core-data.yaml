@@ -11,6 +11,8 @@ servers:
 components:
   schemas:
     AddEventRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
       description: "A request for ingesting a new event/reading data"
       type: object
       properties:
@@ -30,6 +32,8 @@ components:
         - origin
         - readings
     AddEventResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A response type for use in adding a new Event. The ID of the new record will be returned to the caller. An optional message property allows for miscellaneous information to be returned."
       type: object
       properties:
@@ -82,7 +86,25 @@ components:
             mediaType:
               description: "E.g. MIME Type, indicates what the content type of the binaryValue property is if it's populated."
               type: string
+    CorrelatedResponse:
+      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+      required:
+        - correlationId
+    CorrelatedRequest:
+      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+      required:
+        - correlationId
     ErrorResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
       properties:
@@ -91,6 +113,8 @@ components:
         message:
           type: string
     EventCountResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
       description: "Returns an aggregate event count. If the deviceId property is blank then the count is applicable to all events in the database. Otherwise, the count is applicable to the specified device."
       type: object
       properties:
@@ -363,6 +387,26 @@ paths:
           type: string
           format: uuid
         description: "Uniquely identifies a given device"
+    delete:
+      summary: "Deletes all events for the specified device"
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/device/{deviceId}/all:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "Uniquely identifies a given device"
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -376,9 +420,68 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
-        
+  /event/{start}/{end}/all:
+    parameters:
+      - name: start
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "Unix timestamp indicating the start of a date/time range"
+      - name: end
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "Unix timestamp indicating the end of a date/time range"
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Return a paginated range of events with a create date inside the specified start/end values."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Event'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/age/{age}:
+    parameters:
+      - name: age
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "Age in milliseconds since created timestamp for a given event"
+    delete:
+      summary: "Remove all old events (and associated readings) based on delimiting age"
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/scrub:
+    delete:
+      summary: "Remove all pushed events and their associated readings."
+      responses:
+        '204':
+          description: "Delete successful"
+        '500':
+          $ref: '#/components/responses/ServerError'
         
