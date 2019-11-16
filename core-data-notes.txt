@@ -10,3 +10,15 @@
   I have left "FloatEncoding" and "MediaType" off the descriptor. "FloatEncoding" can simply be specified at the time a reading is created (such as "base64").
   MediaType can be done the same way b/c I don't see the MediaType property in the ValueDescriptor today as a constraint. If it were, we should support and
   array so that multiples can be specified (multiple image, sound, video formats for example)
+
+- PUT /api/v1/event REMOVED
+  There should be no need EVER to update an event wholesale. We do support "MarkPushed" but that's it.
+
+- GET /v1/event/{id}:
+  Eliminated as duplicate with /v1/event/id/{id}. Kept the latter for consistency with endpoints in core-metadata (see device, device service)
+
+- GET /v1/event/device/{deviceId}/{limit}:
+  Eliminated due to new pagination mechanism 
+
+- DELETE /v1/event/removeold/age/{age}:
+  Replaced with /v2/event/age/{age}. Only DELETE supported since no GET existed previously.

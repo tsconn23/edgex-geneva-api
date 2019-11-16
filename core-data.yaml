@@ -90,6 +90,17 @@ components:
           type: integer
         message:
           type: string
+    EventCountResponse:
+      description: "Returns an aggregate event count. If the deviceId property is blank then the count is applicable to all events in the database. Otherwise, the count is applicable to the specified device."
+      type: object
+      properties:
+        count:
+          type: integer
+        deviceId:
+          type: string
+          format: uuid
+      required:
+        - count
     Event:
       description: "A discrete event containing one or more readings"
       properties:
@@ -205,6 +216,25 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/ErrorResponse'
+  parameters:
+    offsetParam:
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: "The number of items to skip before starting to collect the result set."
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: "The numbers of items to return."
 paths:
   /event:
     post:
@@ -232,7 +262,123 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/ServerError'
-            
-
+  /event/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Given the entire range of events sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Event'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/id/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returns an event by ID"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/checksum/{checksum}:
+    parameters:
+    - name: checksum
+      in: path
+      required: true
+      schema:
+        type: string
+      description: "checksum value of the event provided by core-data via the message bus"
+    put:
+      summary: "For an event with the supplied checksum value, update the pushed time indicating successful propogation to northside apps/services."
+      responses:
+        '204':
+          description: "success no body returned"
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/count:
+    get:
+      summary: "Return a count of all of events currently stored in the database."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/count/device/{deviceId}:
+    parameters:
+    - name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Uniquely identifies a given device"
+    get:
+      summary: "Return a count of all of events currently stored in the database, sourced from the specified device."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/device/{deviceId}:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "Uniquely identifies a given device"
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Given a range of events from the specified device sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/Event'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
         
         
