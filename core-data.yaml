@@ -152,6 +152,19 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BaseReading'
+    ReadingCountResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "Returns an aggregate reading count. If the deviceId property is blank then the count is applicable to all readings in the database. Otherwise, the count is applicable to the specified device."
+      type: object
+      properties:
+        count:
+          type: integer
+        deviceId:
+          type: string
+          format: uuid
+      required:
+        - count
     SimpleReading:
       description: "An event reading for a simple data type"
       allOf:
@@ -325,7 +338,18 @@ paths:
           $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/ServerError'
-  /event/checksum/{checksum}:
+    delete:
+      summary: "Deletes an event by ID"
+      responses:
+        '204':
+          description: "success no body returned"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /event/checksum/{checksum}/pushed:
     parameters:
     - name: checksum
       in: path
@@ -484,4 +508,192 @@ paths:
           description: "Delete successful"
         '500':
           $ref: '#/components/responses/ServerError'
-        
+  /reading/all:
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Given the entire range of readings sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Readings returned will all inherit from BaseReading but their concrete types will be either SimpleReading or BinaryReading, potentially interleaved."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/BaseReading'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/count:
+    get:
+      summary: "Return a count of all of readings currently stored in the database."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingCountResponse'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/id/{id}:
+    parameters:
+    - name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returns a reading by ID"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BaseReading'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/device/{deviceId}/all:
+    parameters:
+      - name: deviceId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "Uniquely identifies a given device"
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Given a range of readings from the specified device sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/BaseReading'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/uomlabel/{uomLabel}:
+    parameters:
+      - name: uomLabel
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "A unit of measure label applied to a SimpleReading type"
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Returns a paginated set of SimpleReadings according to their assigned unit of measure (UOM) label. BinaryReadings do not have these and so will not be included in the results."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/SimpleReading'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/label/{label}:
+    parameters: 
+    - name: label
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The label of the readings you wish to load.
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Returns a paginated list of readings assigned to the specified label.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/BaseReading'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/type/{type}:
+    parameters: 
+    - name: type
+      in: path
+      required: true
+      schema:
+        type: string
+      description: The datatype of a SimpleReading's value property.
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: Returns a paginated list of SimpleReadings whose value property is of the specified type.
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/SimpleReading'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  /reading/{start}/{end}/all:
+    parameters:
+      - name: start
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "Unix timestamp indicating the start of a date/time range"
+      - name: end
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "Unix timestamp indicating the end of a date/time range"
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Return a paginated range of readings with a create date inside the specified start/end values."
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/BaseReading'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/ServerError'
+  
+  
+    
+  

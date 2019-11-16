@@ -1067,7 +1067,7 @@ paths:
       required: true
       schema:
         type: string
-      description: The label of the devices you wish to load, datatype string.
+      description: The label of the devices you wish to load.
     - $ref: '#/components/parameters/offsetParam'
     - $ref: '#/components/parameters/limitParam'
     get:

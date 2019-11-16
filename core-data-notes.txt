@@ -1,12 +1,18 @@
 - I have left ValueDescriptor in the model because, from previous working group meetings, we will still need some mechanism to define min/max, defaults, etc.
   It has been expressed that these constraints should be used at the time that the reading is created but not necessarily as a runtime check for every reading
   we ingest. Therefore I believe there is still a need for a model, as discussions stand today, to support the definition and evaluation of a value descriptor
-  just not as a pointer from a reading as we do today.
+  just not as a pointer from a reading as we do today. Perhaps this becomes part of the DeviceProfile. Needs discussion in the working groups.
 
-  You'll see that the readings as currently defined do not have pointers to the value descriptors. We could add the constraint properties (min/max) if we need 
-  to ensure a value is in a supported range independent of the device service (or 3rd party application) generating the readings. 
+  I have created an inheritance relationship with BaseReadings providing the common properties between the following two types:
+  * SimpleReading -- A reading for a simple datatype
+  * BinaryReading -- A reading for a binary datatype
+
+  The new Reading types do not have a pointer to a value descriptor. We could add the constraint properties (min/max) if we need 
+  to ensure a value is in a supported range independent of the device service (or 3rd party application) generating the readings, but this would only
+  be applicable to SimpleReadings.
 
 - Value descriptor
+  I left this type in the schema for now until we have a firm decision to remove it and possibly fold it into the DeviceProfile.
   I have left "FloatEncoding" and "MediaType" off the descriptor. "FloatEncoding" can simply be specified at the time a reading is created (such as "base64").
   MediaType can be done the same way b/c I don't see the MediaType property in the ValueDescriptor today as a constraint. If it were, we should support and
   array so that multiples can be specified (multiple image, sound, video formats for example)
@@ -22,3 +28,10 @@
 
 - DELETE /v1/event/removeold/age/{age}:
   Replaced with /v2/event/age/{age}. Only DELETE supported since no GET existed previously.
+
+- POST, PUT /v1/reading:
+  The ability to add/update an individual reading independent from an event is being removed.
+
+- GET /v1/reading/name/{name}/device/{device}/{limit}:
+- GET /v1/reading/name/{name}/{limit}:
+  Removed since value descriptor name is no longer on the reading anymore since type data has been moved there.
