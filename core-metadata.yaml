@@ -1,19 +1,17 @@
 openapi: 3.0.0
 info:
   title: Edgex Foundry - Core Metadata API
-  description: This is the definition of the API for the Core Metadata service in the EdgeX Foundry IOT microservice platform. Core Metadata is responsible for all information related to provisioned devices and their associated services.
+  description: "This is the definition of the API for the Core Metadata service in the EdgeX Foundry IOT microservice platform. Core Metadata is responsible for all information related to provisioned devices and their associated services."
   version: 2.x
-  
 servers:
-  - url: http://localhost:48081/api/v2
+  - url: 'http://localhost:48081/api/v2'
     description: URL for local development and testing
-  
 components:
   schemas:
     AddAddressableRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to add a new addressable."
+      description: A request to add a new addressable.
       type: object
       properties:
         name:
@@ -137,10 +135,10 @@ components:
           description: "Can only be set to LOCKED or UNLOCKED"
           type: string
       required:
-      - deviceServiceName
-      - addressableName
-      - operatingState
-      - adminState
+        - deviceServiceName
+        - addressableName
+        - operatingState
+        - adminState
     AddDeviceServiceResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -154,6 +152,13 @@ components:
           type: string
       required:
         - id
+    AddressableResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        addressable:
+          $ref: '#/components/schemas/Addressable'
     Addressable:
       type: object
       properties:
@@ -223,7 +228,7 @@ components:
     CommandResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
-      description: 'In the context of a device profile, defines an expected response from a command issued to a device via the core-command service.'
+      description: "In the context of a device profile, defines an expected response from a command issued to a device via the core-command service."
       type: object
       properties:
         code:
@@ -235,21 +240,35 @@ components:
           items:
             type: string
     CorrelatedResponse:
-      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
       type: object
       properties:
         correlationId:
           type: string
+        code:
+          type: integer
+        message:
+          type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
       required:
         - correlationId
+        - version
     CorrelatedRequest:
-      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
       type: object
       properties:
         correlationId:
           type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
       required:
         - correlationId
+        - version
     Device:
       type: object
       properties:
@@ -335,6 +354,13 @@ components:
             $ref: '#/components/schemas/Command'
       required:
         - name
+    DeviceProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        profile:
+          $ref: '#/components/schemas/DeviceProfile'
     DeviceResource:
       description: "DeviceResource represents a value on a device that can be read or written."
       type: object
@@ -350,7 +376,14 @@ components:
         attributes:
           type: object
           additionalProperties:
-             type: string
+            type: string
+    DeviceResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        device:
+          $ref: '#/components/schemas/Device'
     DeviceService:
       description: "A DeviceService is responsible for proxying connectivity between a set of devices and the EdgeX Foundry core services."
       type: object
@@ -380,16 +413,13 @@ components:
           $ref: '#/components/schemas/Addressable'
         adminState:
           type: string
-    ErrorResponse:
+    DeviceServiceResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
       type: object
       properties:
-        code:
-          type: integer
-        message:
-          type: string
+        service:
+          $ref: '#/components/schemas/DeviceService'
     ProfileProperty:
       description: "A property defining the data type of a device's reading"
       type: object
@@ -476,14 +506,6 @@ components:
           type: object
           additionalProperties:
             type: string
-    SuccessResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A generic response type indicating a successful operation. An optional message property allows for miscellaneous information to be returned back to the caller." 
-      type: object
-      properties:
-        message:
-          type: string
     Units:
       type: object
       properties:
@@ -526,6 +548,17 @@ components:
         - name
         - protocol
         - address
+    UpdateAddressableResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating an Addressable. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateAdminStateRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
@@ -538,12 +571,23 @@ components:
           description: "Can only be set to LOCKED or UNLOCKED"
           type: string
       required:
-      - deviceId
-      - adminState
+        - deviceId
+        - adminState
+    UpdateAdminStateResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device's AdminState. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateDeviceLastConnectedRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update the last connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
+      description: "A request to update the Last Connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
       type: object
       properties:
         id:
@@ -554,12 +598,23 @@ components:
         notify:
           type: boolean
       required:
-      - id
-      - time
+        - id
+        - time
+    UpdateDeviceLastConnectedResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device's Last Connected timestamp. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateDeviceLastReportedRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update the last reported timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
+      description: "A request to update the Last Reported timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
       type: object
       properties:
         id:
@@ -570,8 +625,19 @@ components:
         notify:
           type: boolean
       required:
-      - id
-      - time
+        - id
+        - time
+    UpdateDeviceLastReportedResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device's Last Reported timestamp. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateDeviceRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
@@ -605,6 +671,17 @@ components:
         - serviceName
         - profileName
         - protocols
+    UpdateDeviceResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating the state of a device. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateDeviceProfileRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
@@ -613,6 +690,17 @@ components:
       properties:
         profile:
           $ref: '#/components/schemas/DeviceProfile'
+    UpdateDeviceProfileResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device profile. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateDeviceServiceRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
@@ -637,11 +725,22 @@ components:
           description: "Can only be set to LOCKED or UNLOCKED"
           type: string
       required:
-      - id
-      - deviceServiceName
-      - addressableName
-      - operatingState
-      - adminState
+        - id
+        - deviceServiceName
+        - addressableName
+        - operatingState
+        - adminState
+    UpdateDeviceServiceResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device service. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
     UpdateOperatingStateRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
@@ -654,33 +753,19 @@ components:
           description: "Can only be set to ENABLED or DISABLED"
           type: string
       required:
-      - deviceId
-      - operatingState
-  responses:
-    BadRequest:
-      description: "Request is in an invalid state"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: "The provided request conflicts with existing data"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: "The requested resource does not exist"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    ServerError:
-      description: "An unexpected error occurred on the server"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
+        - deviceId
+        - operatingState
+    UpdateOperatingStateResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use in updating a device's OperatingState. The ID of the affected record will be returned to the caller."
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+      required:
+        - id
   parameters:
     offsetParam:
       in: query
@@ -689,7 +774,7 @@ components:
       schema:
         type: integer
         minimum: 0
-      description: The number of items to skip before starting to collect the result set.
+      description: "The number of items to skip before starting to collect the result set."
     limitParam:
       in: query
       name: limit
@@ -699,57 +784,101 @@ components:
         minimum: 1
         maximum: 50
         default: 20
-      description: The numbers of items to return.
+      description: "The numbers of items to return."
 paths:
   /addressable:
     post:
-      summary: Allows definition of a new addressable
+      summary: "Allows definition of new addressables"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddAddressableRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/AddAddressableRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddAddressableResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddAddressableResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddAddressableResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddAddressableResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddAddressableResponse'
     put:
-      summary: Allows updates to an existing addressable
+      summary: "Allows updates to an existing addressable"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateAddressableRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateAddressableRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAddressableResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAddressableResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAddressableResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAddressableResponse'
   /addressable/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
-      summary: Given the entire range of addressables sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      summary: "Given the entire range of addressables sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
           description: "OK"
@@ -757,166 +886,268 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Addressable'
+                items:
+                  $ref: '#/components/schemas/AddressableResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /addressable/host/{host}:
-    parameters: 
-    - name: host
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The hostname or IP address of the addressable you wish to load.
-    get:
-      summary: Returns an addressable by its host
-      responses:
-        '200':
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Addressable'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /addressable/id/{id}:
-    parameters: 
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: An ID of datatype string, by default a GUID.
-    get:
-      summary: Returns an addressable by ID
-      responses:
-        '200':
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Addressable'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-    delete:
-      summary: Delete an addressable by ID
-      responses:
-        '204':
-          description: "Delete successful"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /addressable/name/{name}:
-    parameters: 
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The name of the addressable you wish to load, datatype string.
-    get:
-      summary: Returns an addressable by name
-      responses:
-        '200':
-          description: "OK"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Addressable'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-    delete:
-      summary: Delete an addressable by name
-      responses:
-        '204':
-          description: "Delete successful"
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /addressable/port/{port}:
-    parameters: 
-    - name: port
-      in: path
-      required: true
-      schema:
-        type: integer
-      description: The port of the addressable you wish to load.
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    get:
-      summary: Returns a list of all addressables listening on the specified port
-      responses:
-        '200':
-          description: "OK"
+          description: "An unexpected error occurred on the server"
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Addressable'
+                items:
+                  $ref: '#/components/schemas/AddressableResponse'
+  '/addressable/host/{host}':
+    parameters:
+      - name: host
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The hostname or IP address of the addressable you wish to load."
+    get:
+      summary: "Returns an addressable by its host"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Addressable'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+  '/addressable/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returns an addressable by ID"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+    delete:
+      summary: "Delete an addressable by ID"
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+  '/addressable/name/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The name of the addressable you wish to load, datatype string."
+    get:
+      summary: "Returns an addressable by name"
+      responses:
+        '200':
+          description: "OK"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+    delete:
+      summary: "Delete an addressable by name"
+      responses:
+        '204':
+          description: "Delete successful"
+        '400':
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AddressableResponse'
+  '/addressable/port/{port}':
+    parameters:
+      - name: port
+        in: path
+        required: true
+        schema:
+          type: integer
+        description: "The port of the addressable you wish to load."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Returns a list of all addressables listening on the specified port"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressableResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressableResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddressableResponse'
   /device:
     post:
-      summary: Allows provisioning of a new device
+      summary: "Allows provisioning of a new device"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddDeviceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/AddDeviceRequest'
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddDeviceResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceResponse'
     put:
-      summary: Allows updates to an existing device
+      summary: "Allows updates to an existing device"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDeviceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateDeviceRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceResponse'
   /device/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
-      summary: Given the entire range of devices sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      summary: "Given the entire range of devices sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
           description: "OK"
@@ -924,179 +1155,260 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/check/id/{id}:
-    parameters: 
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: An ID of datatype string, by default a GUID.
-    get:
-      summary: Returned status code indicates if the device exists (204) or not (404).
-      responses:
-        '204':
-          description: "Device exists"
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /device/check/name/{name}:
-    parameters: 
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The name of the device you want to check on.
-    get:
-      summary: Returned status code indicates if the device exists (204) or not (404).
-      responses:
-        '204':
-          description: "Device exists"
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /device/id/{id}:
-    parameters: 
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: An ID of datatype string, by default a GUID.
-    get:
-      summary: Returns a device by ID
-      responses:
-        '200':
-          description: "OK"
+          description: "An unexpected error occurred on the server"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+  '/device/check/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returned status code indicates if the device exists (204) or not (404)."
+      responses:
+        '204':
+          description: "Device exists"
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
+  '/device/check/name/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The name of the device you want to check on."
+    get:
+      summary: "Returned status code indicates if the device exists (204) or not (404)."
+      responses:
+        '204':
+          description: "Device exists"
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
+  '/device/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID."
+    get:
+      summary: "Returns a device by ID"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
     delete:
-      summary: Delete a device by ID
+      summary: "Delete a device by ID"
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/DeviceResponse'
   /device/lastconnected:
     put:
-      summary: Updates the "last connected" timestamp for the specified device
+      summary: "Updates the 'last connected' timestamp for the specified device"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDeviceLastConnectedRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateDeviceLastConnectedRequest'
       responses:
-        '204':
+        '200':
           description: "Update successful"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
   /device/lastreported:
     put:
-      summary: Updates the "last reported" timestamp for the specified device
+      summary: "Updates the 'last reported' timestamp for the specified device"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDeviceLastReportedRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateDeviceLastReportedRequest'
       responses:
-        '204':
+        '200':
           description: "Update successful"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/name/{name}:
-    parameters: 
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The name of the device you wish to load, datatype string.
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
+  '/device/name/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The name of the device you wish to load, datatype string."
     get:
-      summary: Returns a device by name
+      summary: "Returns a device by name"
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Device'
+                $ref: '#/components/schemas/DeviceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
     delete:
-      summary: Delete a device by name
+      summary: "Delete a device by name"
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /device/label/{label}:
-    parameters: 
-    - name: label
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The label of the devices you wish to load.
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    get:
-      summary: Returns all devices assigned to the specified label
-      responses:
-        '200':
-          description: "OK"
+          description: "Request is in an invalid state"
           content:
             application/json:
               schema:
-                type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/profile/id/{id}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceResponse'
+  '/device/label/{label}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The unique id of a device profile
+      - name: label
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The label of the devices you wish to load."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
     get:
-      summary: Returns all devices assigned to the specified device profile
+      summary: "Returns all devices assigned to the specified label"
       responses:
         '200':
           description: "OK"
@@ -1104,24 +1416,36 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/profile/name/{name}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+  '/device/profile/id/{id}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The name identifying a device profile
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique id of a device profile"
     get:
-      summary: Returns all devices assigned to the specified device profile
+      summary: "Returns all devices assigned to the specified device profile"
       responses:
         '200':
           description: "OK"
@@ -1129,24 +1453,36 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/service/id/{id}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+  '/device/profile/name/{name}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The unique id of a device service
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The name identifying a device profile"
     get:
-      summary: Returns all devices assigned to the specified device service
+      summary: "Returns all devices assigned to the specified device profile"
       responses:
         '200':
           description: "OK"
@@ -1154,178 +1490,343 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /device/service/name/{name}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+  '/device/service/id/{id}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The name identifying a device service
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique id of a device service"
     get:
-      summary: Returns all devices assigned to the specified device service
+      summary: "Returns all devices assigned to the specified device service"
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/Device'
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+  '/device/service/name/{name}':
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The name identifying a device service"
+    get:
+      summary: "Returns all devices assigned to the specified device service"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceResponse'
   /deviceprofile:
     post:
-      summary: Allows creation of a new device profile
+      summary: "Allows creation of a new device profile"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddDeviceProfileRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/AddDeviceProfileRequest'
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddDeviceProfileResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
     put:
-      summary: Allows updates to an existing device profile
+      summary: "Allows updates to an existing device profile"
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateDeviceProfileRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateDeviceProfileRequest'
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
   /deviceprofile/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
-      summary: Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      summary: "Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceProfile'
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/id/{id}:
-    parameters: 
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: "An ID of datatype string, by default a GUID."
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID."
     get:
       summary: "Returns a device profile by ID"
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceProfile'
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
     delete:
       summary: "Delete a device profile by ID. This operation will fail if there are devices actively using the profile."
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/name/{name}:
-    parameters: 
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "The unique name of a device profile"
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/name/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique name of a device profile"
     get:
       summary: "Returns a device profile by its name"
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceProfile'
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
     delete:
       summary: "Delete a device profile by its unique name. This operation will fail if there are devices actively using the profile."
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/manufacturer/{manufacturer}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/manufacturer/{manufacturer}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: manufacturer
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "The manufacturer for the device profiles in which you're interested."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: manufacturer
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The manufacturer for the device profiles in which you're interested."
     get:
       summary: "Returns a list of device profiles for the given manufacturer."
       responses:
@@ -1335,95 +1836,149 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceProfile'
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/manufacturer/{manufacturer}/model/{model}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/manufacturer/{manufacturer}/model/{model}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: manufacturer
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "The manufacturer for the device profiles in which you're interested."
-    - name: model
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "The model of the device profiles in which you're interested."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: manufacturer
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The manufacturer for the device profiles in which you're interested."
+      - name: model
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The model of the device profiles in which you're interested."
     get:
       summary: "Returns a list of device profiles for the given manufacturer and model."
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceProfile'
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/model/{model}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/model/{model}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: model
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "The model assigned to the device profiles in which you're interested."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: model
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The model assigned to the device profiles in which you're interested."
     get:
       summary: "Returns a list of device profiles for the given model."
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceProfile'
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceprofile/label/{label}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
+  '/deviceprofile/label/{label}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: label
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "A label applied to the device profiles in which you're interested."
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: label
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "A label applied to the device profiles in which you're interested."
     get:
       summary: "Find all DeviceProfiles having at least one label matching the label provided"
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceProfile'
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceProfileResponse'
   /deviceservice:
     post:
       summary: "Add a new DeviceService - name must be unique.  The Addressable must already exist and can be referenced by an included Addressable object containing the Addressable's id or name."
@@ -1432,22 +1987,50 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddDeviceServiceRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/AddDeviceServiceRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddDeviceServiceResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceServiceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceServiceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceServiceResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddDeviceServiceResponse'
     put:
       summary: "Allows updates to an existing device service"
       requestBody:
@@ -1462,21 +2045,47 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '409':
-          $ref: '#/components/responses/Conflict'
+          description: "The provided request conflicts with existing data"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
   /deviceservice/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
-      summary: Given the entire range of device services sorted by last modified descending, returns a portion of that range according to the offset and limit parameters.
+      summary: "Given the entire range of device services sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
           description: "OK"
@@ -1484,145 +2093,227 @@ paths:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceService'
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceservice/id/{id}:
-    parameters: 
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: An ID of datatype string, by default a GUID.
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
+  '/deviceservice/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID."
     get:
-      summary: Returns a device service by ID
+      summary: "Returns a device service by ID"
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceService'
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
     delete:
-      summary: Delete a device service by ID
+      summary: "Delete a device service by ID"
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceservice/name/{name}:
-    parameters: 
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The unique name of the device service you want to load.
-    get:
-      summary: Returns a device service by its unique name
-      responses:
-        '200':
-          description: "OK"
+          description: "Request is in an invalid state"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceService'
-        '404':
-          $ref: '#/components/responses/NotFound'
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+  '/deviceservice/name/{name}':
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique name of the device service you want to load."
+    get:
+      summary: "Returns a device service by its unique name"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
     delete:
-      summary: Delete a device service by its unique name
+      summary: "Delete a device service by its unique name"
       responses:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceservice/addressable/id/{id}:
-    parameters:
-    - name: id
-      in: path
-      required: true
-      schema:
-        type: string
-        format: uuid
-      description: The unique ID of an addressable
-    get:
-      summary: Returns the device service associated with the specified addressable
-      responses:
-        '200':
-          description: "OK"
+          description: "Request is in an invalid state"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceService'
+                $ref: '#/components/schemas/DeviceServiceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+  '/deviceservice/addressable/id/{id}':
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "The unique ID of an addressable"
+    get:
+      summary: "Returns the device service associated with the specified addressable"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceservice/addressable/name/{name}:
-    parameters:
-    - name: name
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The unique name of an addressable
-    get:
-      summary: Returns the device service associated with the specified addressable
-      responses:
-        '200':
-          description: "OK"
+          description: "Request is in an invalid state"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/DeviceService'
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
-  /deviceservice/label/{label}:
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+  '/deviceservice/addressable/name/{name}':
     parameters:
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    - name: label
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "A label applied to the device services in which you're interested."
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique name of an addressable"
+    get:
+      summary: "Returns the device service associated with the specified addressable"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeviceServiceResponse'
+  '/deviceservice/label/{label}':
+    parameters:
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+      - name: label
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "A label applied to the device services in which you're interested."
     get:
       summary: "Find all DeviceServices having at least one label matching the label provided"
       responses:
         '200':
-          description: "OK"
+          description: OK
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/DeviceService'
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceServiceResponse'
   /deviceservice/adminstate:
     put:
       summary: "Update the AdminState for a specific device service"
@@ -1631,20 +2322,42 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateAdminStateRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateAdminStateRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAdminStateResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAdminStateResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAdminStateResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateAdminStateResponse'
   /deviceservice/operatingstate:
     put:
       summary: "Update the OperatingState for a specific device service"
@@ -1653,17 +2366,39 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UpdateOperatingStateRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateOperatingStateRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/SuccessResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
