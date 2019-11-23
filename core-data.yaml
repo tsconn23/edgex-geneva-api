@@ -87,31 +87,35 @@ components:
               description: "E.g. MIME Type, indicates what the content type of the binaryValue property is if it's populated."
               type: string
     CorrelatedResponse:
-      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
+      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
       type: object
       properties:
         correlationId:
           type: string
+        code:
+          type: integer
+        message:
+          type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
       required:
         - correlationId
+        - version
     CorrelatedRequest:
       description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the 'correlation-id' HTTP header"
       type: object
       properties:
         correlationId:
           type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
       required:
         - correlationId
-    ErrorResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A generic response type indicating a failed operation. An optional message property allows for miscellaneous information to be returned back to the caller."
-      type: object
-      properties:
-        code:
-          type: integer
-        message:
-          type: string
+        - version
     EventCountResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -152,6 +156,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BaseReading'
+    EventResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for returning an Event to the caller."
+      type: object
+      properties:
+        event:
+          $ref: '#/components/schemas/Event'
     ReadingCountResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -165,6 +177,14 @@ components:
           format: uuid
       required:
         - count
+    ReadingResponse:
+      allOf:
+        - $ref: '#/components/schemas/ReadingResponse'
+      description: "A response type for returning a Reading to the caller. The Reading may be of either type BinaryReading or type SimpleReading."
+      type: object
+      properties:
+        reading:
+          $ref: '#/components/schemas/BaseReading'
     SimpleReading:
       description: "An event reading for a simple data type"
       allOf:
@@ -174,18 +194,40 @@ components:
             floatEncoding:
               description: "Indicates how a float value is encoded, if the value property contains a float."
               type: string
-            formatting:
-              description: "A format string, if required, for the reading value"
-              type: string
             type:
               description: "Indicates the datatype of the value property"
-              type: string
-            uomLabel:
-              description: "A custom unit-of-measure label"
               type: string
             value:
               description: "A string representation of the reading's value"
               type: string
+    SimpleReadingResponse:
+      allOf:
+        - $ref: '#/components/schemas/ReadingResponse'
+      description: "A response type for returning a Reading to the caller. The Reading may only be of type SimpleReading."
+      type: object
+      properties:
+        reading:
+          $ref: '#/components/schemas/SimpleReading'
+    UpdateEventPushedByChecksumRequest:
+      description: "A request to facilitate updating the 'pushed' timestamp on an event according to its checksum."
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
+        - type: object
+          properties:
+            checksum:
+              type: string
+      required:
+      - checksum
+    UpdateEventPushedByChecksumResponse:
+      description: "A response indicating success/failure to update the 'pushed' timestamp on an event according to its checksum."
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        checksum:
+          type: string
+      required:
+      - checksum
     ValueDescriptor:
       description: "Defines constraints for ingested data via SimpleReadings"
       properties:
@@ -228,31 +270,6 @@ components:
         uomLabel:
           description: "A custom unit-of-measure label"
           type: string
-  responses:
-    BadRequest:
-      description: "Request is in an invalid state"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    Conflict:
-      description: "The provided request conflicts with existing data"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    NotFound:
-      description: "The requested resource does not exist"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-    ServerError:
-      description: "An unexpected error occurred on the server"
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
   parameters:
     offsetParam:
       in: query
@@ -281,24 +298,42 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/AddEventRequest'
+              type: array
+              items:
+                $ref: '#/components/schemas/AddEventRequest'
       responses:
         '200':
           description: "OK"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/AddEventResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddEventResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddEventResponse'
         '404':
           description: "The device in the AddEventRequest does not exist"
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddEventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AddEventResponse'
   /event/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
@@ -313,9 +348,15 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/Event'
+                  $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
   /event/id/{id}:
     parameters:
     - name: id
@@ -333,22 +374,42 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Event'
+                $ref: '#/components/schemas/EventResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
     delete:
       summary: "Deletes an event by ID"
       responses:
         '204':
-          description: "success no body returned"
+          description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
   /event/checksum/{checksum}/pushed:
     parameters:
     - name: checksum
@@ -359,13 +420,39 @@ paths:
       description: "checksum value of the event provided by core-data via the message bus"
     put:
       summary: "For an event with the supplied checksum value, update the pushed time indicating successful propogation to northside apps/services."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/UpdateEventPushedByChecksumRequest'
       responses:
-        '204':
-          description: "success no body returned"
+        '200':
+          description: "Update successful"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
   /event/count:
     get:
       summary: "Return a count of all of events currently stored in the database."
@@ -377,7 +464,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
   /event/count/device/{deviceId}:
     parameters:
     - name: deviceId
@@ -397,11 +488,23 @@ paths:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventCountResponse'
   /event/device/{deviceId}:
     parameters:
       - name: deviceId
@@ -417,11 +520,23 @@ paths:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/EventResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+               $ref: '#/components/schemas/EventResponse'
   /event/device/{deviceId}/all:
     parameters:
       - name: deviceId
@@ -443,13 +558,31 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/Event'
+                  $ref: '#/components/schemas/EventResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
   /event/{start}/{end}/all:
     parameters:
       - name: start
@@ -476,11 +609,23 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/Event'
+                  $ref: '#/components/schemas/EventResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items: 
+                  $ref: '#/components/schemas/EventResponse'
   /event/age/{age}:
     parameters:
       - name: age
@@ -495,11 +640,23 @@ paths:
         '204':
           description: "Delete successful"
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
   /event/scrub:
     delete:
       summary: "Remove all pushed events and their associated readings."
@@ -507,7 +664,11 @@ paths:
         '204':
           description: "Delete successful"
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponse'
   /reading/all:
     parameters:
       - $ref: '#/components/parameters/offsetParam'
@@ -522,9 +683,15 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/BaseReading'
+                  $ref: '#/components/schemas/ReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
   /reading/count:
     get:
       summary: "Return a count of all of readings currently stored in the database."
@@ -536,7 +703,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReadingCountResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingCountResponse'
   /reading/id/{id}:
     parameters:
     - name: id
@@ -554,11 +725,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/BaseReading'
+                $ref: '#/components/schemas/ReadingResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadingResponse'
   /reading/device/{deviceId}/all:
     parameters:
       - name: deviceId
@@ -580,36 +759,31 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/BaseReading'
+                  $ref: '#/components/schemas/ReadingResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
-        '404':
-          $ref: '#/components/responses/NotFound'
-        '500':
-          $ref: '#/components/responses/ServerError'
-  /reading/uomlabel/{uomLabel}:
-    parameters:
-      - name: uomLabel
-        in: path
-        required: true
-        schema:
-          type: string
-        description: "A unit of measure label applied to a SimpleReading type"
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
-    get:
-      summary: "Returns a paginated set of SimpleReadings according to their assigned unit of measure (UOM) label. BinaryReadings do not have these and so will not be included in the results."
-      responses:
-        '200':
-          description: "OK"
+          description: "Request is in an invalid state"
           content:
             application/json:
               schema:
                 type: array
-                items: 
-                  $ref: '#/components/schemas/SimpleReading'
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
+        '404':
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
   /reading/label/{label}:
     parameters: 
     - name: label
@@ -630,11 +804,23 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/BaseReading'
+                  $ref: '#/components/schemas/ReadingResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
   /reading/type/{type}:
     parameters: 
     - name: type
@@ -655,13 +841,31 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/SimpleReading'
+                  $ref: '#/components/schemas/SimpleReadingResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleReadingResponse'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: "The requested resource does not exist"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SimpleReadingResponse'
   /reading/{start}/{end}/all:
     parameters:
       - name: start
@@ -688,12 +892,22 @@ paths:
               schema:
                 type: array
                 items: 
-                  $ref: '#/components/schemas/BaseReading'
+                  $ref: '#/components/schemas/ReadingResponse'
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: "Request is in an invalid state"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
         '500':
-          $ref: '#/components/responses/ServerError'
+          description: "An unexpected error occurred on the server"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReadingResponse'
   
-  
-    
   
