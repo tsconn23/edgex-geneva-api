@@ -785,8 +785,27 @@ components:
         maximum: 50
         default: 20
       description: "The numbers of items to return."
+    correlatedRequestHeader:
+      in: header
+      name: X-Correlation-ID
+      description: "A unique identifier correlating a request to its associated response, facilitating tracing through being included on requests originating from the initiating request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+  headers:
+    correlatedResponseHeader:
+      description: "A response header that returns the unique correlation ID used to initiate the request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
 paths:
   /addressable:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
       summary: "Allows definition of new addressables"
       requestBody:
@@ -800,6 +819,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -808,6 +830,9 @@ paths:
                   $ref: '#/components/schemas/AddAddressableResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -816,6 +841,9 @@ paths:
                   $ref: '#/components/schemas/AddAddressableResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -824,6 +852,9 @@ paths:
                   $ref: '#/components/schemas/AddAddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -843,6 +874,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -851,6 +885,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAddressableResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -859,6 +896,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAddressableResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -867,6 +907,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -875,6 +918,7 @@ paths:
                   $ref: '#/components/schemas/UpdateAddressableResponse'
   /addressable/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -882,6 +926,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -890,14 +937,18 @@ paths:
                   $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddressableResponse'
-  '/addressable/host/{host}':
+  /addressable/host/{host}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: host
         in: path
         required: true
@@ -909,24 +960,34 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Addressable'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
-  '/addressable/id/{id}':
+  /addressable/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -938,19 +999,28 @@ paths:
       summary: "Returns an addressable by ID"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -960,20 +1030,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
-  '/addressable/name/{name}':
+  /addressable/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -985,18 +1065,27 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1006,20 +1095,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/AddressableResponse'
-  '/addressable/port/{port}':
+  /addressable/port/{port}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: port
         in: path
         required: true
@@ -1032,7 +1131,10 @@ paths:
       summary: "Returns a list of all addressables listening on the specified port"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1041,6 +1143,9 @@ paths:
                   $ref: '#/components/schemas/AddressableResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1049,6 +1154,9 @@ paths:
                   $ref: '#/components/schemas/AddressableResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1056,6 +1164,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/AddressableResponse'
   /device:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
       summary: "Allows provisioning of a new device"
       requestBody:
@@ -1068,7 +1178,10 @@ paths:
                 $ref: '#/components/schemas/AddDeviceRequest'
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1077,6 +1190,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1085,6 +1201,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1093,6 +1212,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1112,6 +1234,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1120,6 +1245,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1128,6 +1256,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1136,6 +1267,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1144,6 +1278,7 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceResponse'
   /device/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -1151,6 +1286,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1159,14 +1297,18 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
-  '/device/check/id/{id}':
+  /device/check/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -1179,20 +1321,30 @@ paths:
       responses:
         '204':
           description: "Device exists"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
-  '/device/check/name/{name}':
+  /device/check/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -1204,20 +1356,30 @@ paths:
       responses:
         '204':
           description: "Device exists"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
-  '/device/id/{id}':
+  /device/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -1229,19 +1391,28 @@ paths:
       summary: "Returns a device by ID"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1251,19 +1422,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
   /device/lastconnected:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     put:
       summary: "Updates the 'last connected' timestamp for the specified device"
       requestBody:
@@ -1277,6 +1459,9 @@ paths:
       responses:
         '200':
           description: "Update successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1285,6 +1470,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1293,6 +1481,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1301,6 +1492,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1308,6 +1502,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
   /device/lastreported:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     put:
       summary: "Updates the 'last reported' timestamp for the specified device"
       requestBody:
@@ -1321,6 +1517,9 @@ paths:
       responses:
         '200':
           description: "Update successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1329,6 +1528,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1337,6 +1539,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1345,14 +1550,18 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
-  '/device/name/{name}':
+  /device/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -1364,18 +1573,27 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1385,20 +1603,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
-  '/device/label/{label}':
+  /device/label/{label}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: label
         in: path
         required: true
@@ -1412,6 +1640,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1420,6 +1651,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1428,14 +1662,18 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
-  '/device/profile/id/{id}':
+  /device/profile/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: id
@@ -1449,6 +1687,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1457,6 +1698,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1465,14 +1709,18 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
-  '/device/profile/name/{name}':
+  /device/profile/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: name
@@ -1486,6 +1734,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1494,6 +1745,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1502,14 +1756,18 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
-  '/device/service/id/{id}':
+  /device/service/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: id
@@ -1522,7 +1780,10 @@ paths:
       summary: "Returns all devices assigned to the specified device service"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1531,6 +1792,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1539,14 +1803,18 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
-  '/device/service/name/{name}':
+  /device/service/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: name
@@ -1559,7 +1827,10 @@ paths:
       summary: "Returns all devices assigned to the specified device service"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1568,6 +1839,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1576,6 +1850,9 @@ paths:
                   $ref: '#/components/schemas/DeviceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1583,6 +1860,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/DeviceResponse'
   /deviceprofile:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
       summary: "Allows creation of a new device profile"
       requestBody:
@@ -1595,7 +1874,10 @@ paths:
                 $ref: '#/components/schemas/AddDeviceProfileRequest'
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1604,6 +1886,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1612,6 +1897,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceProfileResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1620,6 +1908,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1638,7 +1929,10 @@ paths:
                 $ref: '#/components/schemas/UpdateDeviceProfileRequest'
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1647,6 +1941,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1655,6 +1952,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1663,6 +1963,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1671,13 +1974,17 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceProfileResponse'
   /deviceprofile/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
       summary: "Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1686,6 +1993,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1694,14 +2004,18 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/id/{id}':
+  /deviceprofile/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -1713,19 +2027,28 @@ paths:
       summary: "Returns a device profile by ID"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1735,32 +2058,48 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/name/{name}':
+  /deviceprofile/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -1771,19 +2110,28 @@ paths:
       summary: "Returns a device profile by its name"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1793,32 +2141,48 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/manufacturer/{manufacturer}':
+  /deviceprofile/manufacturer/{manufacturer}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: manufacturer
@@ -1832,6 +2196,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1840,6 +2207,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1848,14 +2218,18 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/manufacturer/{manufacturer}/model/{model}':
+  /deviceprofile/manufacturer/{manufacturer}/model/{model}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: manufacturer
@@ -1874,7 +2248,10 @@ paths:
       summary: "Returns a list of device profiles for the given manufacturer and model."
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1883,6 +2260,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1891,14 +2271,18 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/model/{model}':
+  /deviceprofile/model/{model}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: model
@@ -1911,7 +2295,10 @@ paths:
       summary: "Returns a list of device profiles for the given model."
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1920,6 +2307,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1928,14 +2318,18 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
-  '/deviceprofile/label/{label}':
+  /deviceprofile/label/{label}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: label
@@ -1948,7 +2342,10 @@ paths:
       summary: "Find all DeviceProfiles having at least one label matching the label provided"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1957,6 +2354,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1965,6 +2365,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1973,6 +2376,9 @@ paths:
                   $ref: '#/components/schemas/DeviceProfileResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -1980,6 +2386,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
   /deviceservice:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
       summary: "Add a new DeviceService - name must be unique.  The Addressable must already exist and can be referenced by an included Addressable object containing the Addressable's id or name."
       requestBody:
@@ -1993,6 +2401,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2001,6 +2412,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceServiceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2009,6 +2423,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2017,6 +2434,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceServiceResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2025,6 +2445,9 @@ paths:
                   $ref: '#/components/schemas/AddDeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2042,6 +2465,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2050,6 +2476,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2058,6 +2487,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2066,6 +2498,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '409':
           description: "The provided request conflicts with existing data"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2074,6 +2509,9 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2082,6 +2520,7 @@ paths:
                   $ref: '#/components/schemas/UpdateDeviceServiceResponse'
   /deviceservice/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -2089,6 +2528,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2097,6 +2539,9 @@ paths:
                   $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2105,14 +2550,18 @@ paths:
                   $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceServiceResponse'
-  '/deviceservice/id/{id}':
+  /deviceservice/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -2125,18 +2574,27 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2146,20 +2604,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
-  '/deviceservice/name/{name}':
+  /deviceservice/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -2170,19 +2638,28 @@ paths:
       summary: "Returns a device service by its unique name"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2192,20 +2669,30 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
-  '/deviceservice/addressable/id/{id}':
+  /deviceservice/addressable/id/{id}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: id
         in: path
         required: true
@@ -2217,31 +2704,44 @@ paths:
       summary: "Returns the device service associated with the specified addressable"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
-  '/deviceservice/addressable/name/{name}':
+  /deviceservice/addressable/name/{name}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: name
         in: path
         required: true
@@ -2252,25 +2752,35 @@ paths:
       summary: "Returns the device service associated with the specified addressable"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
-  '/deviceservice/label/{label}':
+  /deviceservice/label/{label}:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
       - name: label
@@ -2283,7 +2793,10 @@ paths:
       summary: "Find all DeviceServices having at least one label matching the label provided"
       responses:
         '200':
-          description: OK
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2292,6 +2805,9 @@ paths:
                   $ref: '#/components/schemas/DeviceServiceResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2300,6 +2816,9 @@ paths:
                   $ref: '#/components/schemas/DeviceServiceResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2308,6 +2827,9 @@ paths:
                   $ref: '#/components/schemas/DeviceServiceResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2315,6 +2837,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/DeviceServiceResponse'
   /deviceservice/adminstate:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     put:
       summary: "Update the AdminState for a specific device service"
       requestBody:
@@ -2328,6 +2852,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2336,6 +2863,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAdminStateResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2344,6 +2874,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAdminStateResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2352,6 +2885,9 @@ paths:
                   $ref: '#/components/schemas/UpdateAdminStateResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2359,6 +2895,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/UpdateAdminStateResponse'
   /deviceservice/operatingstate:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     put:
       summary: "Update the OperatingState for a specific device service"
       requestBody:
@@ -2372,6 +2910,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2380,6 +2921,9 @@ paths:
                   $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2388,6 +2932,9 @@ paths:
                   $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -2396,6 +2943,9 @@ paths:
                   $ref: '#/components/schemas/UpdateOperatingStateResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:

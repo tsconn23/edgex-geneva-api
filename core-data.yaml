@@ -289,8 +289,27 @@ components:
         maximum: 50
         default: 20
       description: "The numbers of items to return."
+    correlatedRequestHeader:
+      in: header
+      name: X-Correlation-ID
+      description: "A unique identifier correlating a request to its associated response, facilitating tracing through being included on requests originating from the initiating request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+  headers:
+    correlatedResponseHeader:
+      description: "A response header that returns the unique correlation ID used to initiate the request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
 paths:
   /event:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
       summary: "Allows for the ingestion of event/reading data"
       requestBody:
@@ -304,6 +323,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -312,6 +334,9 @@ paths:
                   $ref: '#/components/schemas/AddEventResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -320,6 +345,9 @@ paths:
                   $ref: '#/components/schemas/AddEventResponse'
         '404':
           description: "The device in the AddEventRequest does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -328,6 +356,9 @@ paths:
                   $ref: '#/components/schemas/AddEventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -336,6 +367,7 @@ paths:
                   $ref: '#/components/schemas/AddEventResponse'
   /event/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -343,6 +375,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -351,6 +386,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -359,6 +397,7 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
   /event/id/{id}:
     parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: id
       in: path
       required: true
@@ -371,18 +410,27 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -392,26 +440,39 @@ paths:
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
   /event/checksum/{checksum}/pushed:
     parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: checksum
       in: path
       required: true
@@ -431,6 +492,9 @@ paths:
       responses:
         '200':
           description: "Update successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -439,6 +503,9 @@ paths:
                   $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -447,6 +514,9 @@ paths:
                   $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -454,23 +524,32 @@ paths:
                 items:
                   $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
   /event/count:
+    parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     get:
       summary: "Return a count of all of events currently stored in the database."
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
   /event/count/device/{deviceId}:
     parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: deviceId
       in: path
       required: true
@@ -483,76 +562,105 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventCountResponse'
   /event/device/{deviceId}:
     parameters:
-      - name: deviceId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-        description: "Uniquely identifies a given device"
+    - $ref: '#/components/parameters/correlatedRequestHeader'
+    - name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Uniquely identifies a given device"
     delete:
       summary: "Deletes all events for the specified device"
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/EventResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                $ref: '#/components/schemas/EventResponse'
   /event/device/{deviceId}/all:
     parameters:
-      - name: deviceId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-        description: "Uniquely identifies a given device"
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
+    - $ref: '#/components/parameters/correlatedRequestHeader'
+    - name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Uniquely identifies a given device"
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
     get:
       summary: "Given a range of events from the specified device sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -561,6 +669,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -569,6 +680,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -577,6 +691,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -585,25 +702,29 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
   /event/{start}/{end}/all:
     parameters:
-      - name: start
-        in: path
-        required: true
-        schema:
-          type: integer
-        description: "Unix timestamp indicating the start of a date/time range"
-      - name: end
-        in: path
-        required: true
-        schema:
-          type: integer
-        description: "Unix timestamp indicating the end of a date/time range"
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
+    - $ref: '#/components/parameters/correlatedRequestHeader'
+    - name: start
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: "Unix timestamp indicating the start of a date/time range"
+    - name: end
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: "Unix timestamp indicating the end of a date/time range"
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
     get:
       summary: "Return a paginated range of events with a create date inside the specified start/end values."
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -612,6 +733,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -620,6 +744,9 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -628,49 +755,71 @@ paths:
                   $ref: '#/components/schemas/EventResponse'
   /event/age/{age}:
     parameters:
-      - name: age
-        in: path
-        required: true
-        schema:
-          type: integer
-        description: "Age in milliseconds since created timestamp for a given event"
+    - $ref: '#/components/parameters/correlatedRequestHeader'
+    - name: age
+      in: path
+      required: true
+      schema:
+        type: integer
+      description: "Age in milliseconds since created timestamp for a given event"
     delete:
       summary: "Remove all old events (and associated readings) based on delimiting age"
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
   /event/scrub:
+    parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     delete:
       summary: "Remove all pushed events and their associated readings."
       responses:
         '204':
           description: "Delete successful"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
   /reading/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
     get:
@@ -678,6 +827,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -686,6 +838,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -693,23 +848,32 @@ paths:
                 items:
                   $ref: '#/components/schemas/ReadingResponse'
   /reading/count:
+    parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     get:
       summary: "Return a count of all of readings currently stored in the database."
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadingCountResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadingCountResponse'
   /reading/id/{id}:
     parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: id
       in: path
       required: true
@@ -722,38 +886,51 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadingResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ReadingResponse'
   /reading/device/{deviceId}/all:
     parameters:
-      - name: deviceId
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-        description: "Uniquely identifies a given device"
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
+    - $ref: '#/components/parameters/correlatedRequestHeader'
+    - name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: "Uniquely identifies a given device"
+    - $ref: '#/components/parameters/offsetParam'
+    - $ref: '#/components/parameters/limitParam'
     get:
       summary: "Given a range of readings from the specified device sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -762,6 +939,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -770,6 +950,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -778,6 +961,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -785,7 +971,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ReadingResponse'
   /reading/label/{label}:
-    parameters: 
+    parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: label
       in: path
       required: true
@@ -799,6 +986,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -807,6 +997,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -815,6 +1008,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -822,7 +1018,8 @@ paths:
                 items:
                   $ref: '#/components/schemas/ReadingResponse'
   /reading/type/{type}:
-    parameters: 
+    parameters:
+    - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: type
       in: path
       required: true
@@ -836,6 +1033,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -844,6 +1044,9 @@ paths:
                   $ref: '#/components/schemas/SimpleReadingResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -852,6 +1055,9 @@ paths:
                   $ref: '#/components/schemas/SimpleReadingResponse'
         '404':
           description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -860,6 +1066,9 @@ paths:
                   $ref: '#/components/schemas/SimpleReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -868,6 +1077,7 @@ paths:
                   $ref: '#/components/schemas/SimpleReadingResponse'
   /reading/{start}/{end}/all:
     parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: start
         in: path
         required: true
@@ -887,6 +1097,9 @@ paths:
       responses:
         '200':
           description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -895,6 +1108,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '400':
           description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
@@ -903,6 +1119,9 @@ paths:
                   $ref: '#/components/schemas/ReadingResponse'
         '500':
           description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
