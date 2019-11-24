@@ -1,0 +1,480 @@
+openapi: 3.0.0
+info:
+  title: Edgex Foundry - Core Command API
+  description: This is the definition of the API for the Core Command service in the EdgeX Foundry IOT microservice platform. Core Command is responsible for storing command definitions and also for executing those commands as reads and writes against target devices.
+  version: 2.x
+  
+servers:
+  - url: http://localhost:48082/api/v2
+    description: URL for local development and testing
+  
+components:
+  schemas:
+    ActionResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        description:
+          type: string
+        expectedValues:
+          type: array
+          items:
+            type: string
+    Command:
+      type: object
+      properties:
+        created:
+          type: integer
+        get:
+          $ref: '#/components/schemas/CommandAction'
+        id:
+          type: string
+          format: uuid
+        modified:
+          type: integer
+        name:
+          type: string
+        put:
+          $ref: '#/components/schemas/CommandAction'
+    CommandAction:
+      type: object
+      properties:
+        path:
+          type: string
+        responses:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActionResponse'
+        url:
+          type: string
+    CommandResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "For the specified device, provides a list of the associated commands."
+      type: object
+      properties:
+        device:
+          description: "Indicates a device. Will be either the device ID or name depending on how the request was made."
+          type: string
+        commands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Command'
+    CorrelatedResponse:
+      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+        code:
+          type: integer
+        message:
+          type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
+      required:
+        - correlationId
+        - version
+    CorrelatedRequest:
+      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
+      type: object
+      properties:
+        correlationId:
+          type: string
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
+      required:
+        - correlationId
+        - version
+        
+    IssueCommandResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "Provides a response with details about whether invocation of a given command was successful."
+      type: object
+      properties:
+        device:
+          type: string
+          description: "Refers to the device targeted by the command. Could be either the device ID or name."
+        command:
+          type: string
+          description: "Refers to the command being invoked. Could be either the command ID or name."
+      required:
+      - device
+      - command
+  parameters:
+    offsetParam:
+      in: query
+      name: offset
+      required: false
+      schema:
+        type: integer
+        minimum: 0
+      description: "The number of items to skip before starting to collect the result set."
+    limitParam:
+      in: query
+      name: limit
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 50
+        default: 20
+      description: "The numbers of items to return."
+    correlatedRequestHeader:
+      in: header
+      name: X-Correlation-ID
+      description: "A unique identifier correlating a request to its associated response, facilitating tracing through being included on requests originating from the initiating request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+  headers:
+    correlatedResponseHeader:
+      description: "A response header that returns the unique correlation ID used to initiate the request."
+      schema:
+        type: string
+        format: uuid
+      required: true
+      example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+paths:
+  /device/id/{deviceid}/command/{commandid}:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+      - name: deviceid
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID. Uniquely identifies a device."
+      - name: commandid
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID. Uniquely identifies a command."
+    get:
+      summary: "Issue the specified read command referenced by the command id to the device/sensor, also referenced by id."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '400':
+          description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '423':
+          description: "The device is locked (AdminState)"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+    put:
+      summary: "Issue the specified write command referenced by the command id to the device/sensor, also referenced by id."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '400':
+          description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '423':
+          description: "The device is locked (AdminState)"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+  /device/name/{deviceName}/command/{commandName}:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+      - name: deviceName
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "A name uniquely identifying a device."
+      - name: commandName
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "A name uniquely identifying a command."
+    get:
+      summary: "Issue the specified read command referenced by the command name to the device/sensor, also referenced by name."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '400':
+          description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '423':
+          description: "The device is locked (AdminState)"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+    put:
+      summary: "Issue the specified write command referenced by the command name to the device/sensor, also referenced by name."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '400':
+          description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '423':
+          description: "The device is locked (AdminState)"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IssueCommandResponse'
+  /device/id/{id}:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+        description: "An ID of datatype string, by default a GUID. Uniquely identifies a device."
+    get:
+      summary: "Returns all commands associated with the specified device."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+  /device/name/{name}:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: "The unique name of a device."
+    get:
+      summary: "Returns all commands associated with the specified device."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommandResponse'
+  /device/all:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+      - $ref: '#/components/parameters/offsetParam'
+      - $ref: '#/components/parameters/limitParam'
+    get:
+      summary: "Returns a paginated list of CommandResponses. The list contains all of the commands in the system associated with their respective device."
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommandResponse'
+      

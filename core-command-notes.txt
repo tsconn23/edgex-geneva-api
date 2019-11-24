@@ -1,0 +1,7 @@
+/v1/device/{id}/command/{commandid}:
+  Normalizing as /v2/device/id/{id}/command/{commandid}
+  This is because there is currently a name endpoint which takes both device name and command name
+    v1/device/name/{name}/command/{commandname}
+
+/v1/device/{id}
+  Normalizing as /v2/device/id/{id} to align with existing /v1/device/name/{name}
