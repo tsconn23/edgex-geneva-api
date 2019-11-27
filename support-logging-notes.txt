@@ -1,0 +1,6 @@
+With regard to querying logs, I decided to move most of what were previously route-driven parameters
+into querystring parameters. It didn't seem right to me to have the parameters of arbitrary length 
+(keywords, origin service list) in the route. The primary route-based distinction seemed to me to be, 
+do you care about a timestamp range or not? If so, there are routes supporting that distinction. After 
+that, everything else is driven by optional querystring params. This reduces the route permutation and,
+I believe, the complexity in defining the API.
