@@ -61,12 +61,41 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Command'
-    CorrelatedResponse:
-      description: "Provides the correlation ID originally set via a corresponsing request that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
+    CorrelatedRequest:
+      description: "Provides a correlation ID that can be used when grouping multiple requests into a single batch. For example, multiple commands can be issued at once. Each IssueCommandRequest has its own request identifier while the batch has an overall identifier. This allows for visibility into whether or not a response was obtained for every request in the batch."
       type: object
       properties:
         correlationId:
+          description: "Identifies the batch to which this request belongs. If used via REST, this value should be the same as that of  the ''X-Correlation-ID'' HTTP header."
           type: string
+          format: uuid
+          example: "82eb2e26-0f24-48aa-ae4c-de9dac3fb9bc"
+        requestId:
+          description: "Uniquely identifies this request apart from its peers in the batch."
+          type: string
+          format: uuid
+          example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
+      required:
+        - correlationId
+        - version
+    CorrelatedResponse:
+      description: "Provides a correlation ID that can be used when grouping multiple responses into a single batch. For example, multiple commands can be issued at once. The responses can be returned as a batch or individually. It doesn't matter as long as both of these properties are correctly set because either way the caller will have visibility into whether or not a response was obtained for every request in the batch."
+      type: object
+      properties:
+        correlationId:
+          description: "Identifies the batch to which this response belongs. If used via REST, this value should be the same as that of  the ''X-Correlation-ID'' HTTP header."
+          type: string
+          format: uuid
+          example: "82eb2e26-0f24-48aa-ae4c-de9dac3fb9bc"
+        requestId:
+          description: "Uniquely identifies the request within the larger batch resulting in this response."
+          type: string
+          format: uuid
+          example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
         code:
           type: integer
         message:
@@ -78,20 +107,23 @@ components:
       required:
         - correlationId
         - version
-    CorrelatedRequest:
-      description: "Provides a correlation ID that can be used for tracing via either REST or pub/sub transport. If used via REST, this value should be the same as that of  the ''correlation-id'' HTTP header"
+    IssueCommandRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
+      description: "A request type specifying an individual command for execution."
       type: object
       properties:
-        correlationId:
+        deviceId:
           type: string
-        version:
-          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          format: uuid
+          description: "Refers to the device targeted by the command. Could be either the device ID or name."
+        commandId:
           type: string
-          example: "2.0.x"
+          format: uuid
+          description: "Refers to the command being invoked. Could be either the command ID or name."
       required:
-        - correlationId
-        - version
-        
+      - device
+      - command
     IssueCommandResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -144,6 +176,75 @@ components:
       required: true
       example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
 paths:
+  /command:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+    put:
+      summary: "Allows for the issuance of multiple commands in a batch. Commands will be executed as either read or write according to their definition."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/IssueCommandRequest'
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
+        '400':
+          description: "Request is in an invalid state"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                   $ref: '#/components/schemas/IssueCommandResponse'
+        '404':
+          description: "The requested resource does not exist"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
+        '423':
+          description: "The device is locked (AdminState)"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
   /device/id/{deviceid}/command/{commandid}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
