@@ -91,6 +91,15 @@ components:
           $ref: '#/components/schemas/LogEntry'
       required:
       - entry
+    PingResponse:
+      allOf:
+      - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        timestamp:
+          description: "Outputs the current server timestamp in RFC1123 format"
+          example: "Mon, 02 Jan 2006 15:04:05 MST"
+          type: string
     WriteLogEntryRequest:
       allOf:
       - $ref: '#/components/schemas/CorrelatedRequest'
@@ -337,3 +346,29 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LogEntryResponse'
+  /ping:
+    get:
+      summary: "A simple 'ping' endpoint that can be used as a service healthcheck"
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PingResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PingResponse'

@@ -180,6 +180,15 @@ components:
       properties:
         event:
           $ref: '#/components/schemas/Event'
+    PingResponse:
+      allOf:
+      - $ref: '#/components/schemas/CorrelatedResponse'
+      type: object
+      properties:
+        timestamp:
+          description: "Outputs the current server timestamp in RFC1123 format"
+          example: "Mon, 02 Jan 2006 15:04:05 MST"
+          type: string
     ReadingCountResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -833,6 +842,32 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
+  /ping:
+    get:
+      summary: "A simple 'ping' endpoint that can be used as a service healthcheck"
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PingResponse'
+        '500':
+          description: "An unexpected error occurred on the server"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PingResponse'
   /reading/all:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -1144,5 +1179,3 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReadingResponse'
-  
-  
