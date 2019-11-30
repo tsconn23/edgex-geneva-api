@@ -1,0 +1,34 @@
+I eliminated the following two endpoints:
+/notifications/start/{start}/{limit}:
+/notifications/end/{end}/{limit}:
+In my opinion, the user should use the full route and either specify NOW as the end (in the first case) or ZERO as the start (in the second case).
+
+Currently we only support retrieval of notifications in they're in the NEW status:
+/notifications/new/{limit}:
+I'm going to extend this like so
+/notifications/status/{status}:
+
+I am normalizing the "label search" endpoint to only take one label and not a comma-delimited list. If it's a list, it should be
+more properly specified as a querystring parameter.
+/notifications/labels/{labels}/{limit}:
+
+Something I noticed is that you can have only one subscription per notification. This is because the "slug" property is used to monitor
+a given notification. The "slug" acts like a name for the notification and must be unique. But there is also a constraint within 
+notifications to have the slug be unique. That would mean in order to add receivers to the subscription, one would need to update
+the subscription to contain a new Channel to support the additiona delivery via REST or EMAIL.
+
+I have also eliminated subscription-based routes allowing for comma-delimited lists in the route like the following:
+/subscriptions/categories/{categories}/labels/{labels}:
+Instead these will be refactored similar to how the above notifications/label route works
+/subscriptions/category/{category}
+/subscriptions/label/{label}
+If it necessary to support searching by multiple values at once, these should then be added as querystring parameters
+to the /subscriptions/all route.
+I also wonder why it is that we support these endpoints for subscriptions but not for notifications...?
+
+I have eliminated this weird mix of routes for deleting transmissions by status if they're older than a specified age.
+/transmissions/sent/age/{age}:
+/transmissions/escalated/age/{age}:
+/transmissions/acknowledged/age/{age}:
+/transmissions/failed/age/{age}:
+I consolidated these to one route allowing deletion of all transmissions by age, regardless of status.

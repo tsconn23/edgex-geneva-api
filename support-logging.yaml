@@ -263,7 +263,7 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LogEntryResponse'
-  /logs/{start}/{end}:
+  /logs/start/{start}/end/{end}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/logLevelsParam'
@@ -308,7 +308,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/WriteLogEntryResponse'
+                  $ref: '#/components/schemas/LogEntryResponse'
         '500':
           description: "An unexpected error occurred on the server"
           headers:
