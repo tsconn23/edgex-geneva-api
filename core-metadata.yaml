@@ -198,6 +198,44 @@ components:
           type: boolean
         resource:
           type: string
+    BulkRequest:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedRequest'
+      description: "A request type for use via the /bulk endpoint."
+      type: object
+      properties:
+        action:
+          description: "The HTTP verb applicable to the request type contained in the 'content' property (e.g. GET, PUT, POST, DELETE, PATCH)"
+          type: string
+        content:
+          description: "Contains a serialized request type as a byte array"
+          type: string
+          format: byte
+        dtoVersion:
+          description: "Indicates the version of the serialized request type contained in the 'content' property."
+          type: string
+        type:
+          description: "Indicates the type of the serialized blob in the 'content' property."
+          type: string
+    BulkResponse:
+      allOf:
+        - $ref: '#/components/schemas/CorrelatedResponse'
+      description: "A response type for use via the /bulk endpoint."
+      type: object
+      properties:
+        action:
+          description: "The HTTP verb applicable to the corresponding request type resulting in the given response (e.g. GET, PUT, POST, DELETE, PATCH)"
+          type: string
+        content:
+          description: "Contains a serialized response type as a byte array"
+          type: string
+          format: byte
+        dtoVersion:
+          description: "Indicates the version of the serialized response type contained in the 'content' property."
+          type: string
+        type:
+          description: "Indicates the type of the serialized blob in the 'content' property."
+          type: string
     Command:
       type: object
       properties:
@@ -368,8 +406,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Command'
-      required:
-        - name
     DeviceProfileResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -543,6 +579,7 @@ components:
     UpdateAddressableRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
+      description: "A request to update an existing addressable definition. 'id' and 'name' must be populated in order to identify the addressable. Any other property that is populated in the request will be updated. Empty/blank properties will not be considered."
       type: object
       properties:
         id:
@@ -571,8 +608,6 @@ components:
       required:
         - id
         - name
-        - protocol
-        - address
     UpdateAddressableResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -584,118 +619,42 @@ components:
           format: uuid
       required:
         - id
-    UpdateAdminStateRequest:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedRequest'
-      type: object
-      properties:
-        deviceId:
-          type: string
-          format: uuid
-        adminState:
-          description: "Can only be set to LOCKED or UNLOCKED"
-          type: string
-      required:
-        - deviceId
-        - adminState
-    UpdateAdminStateResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use in updating a device's AdminState. The ID of the affected record will be returned to the caller."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
-    UpdateDeviceLastConnectedRequest:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update the Last Connected timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        time:
-          type: integer
-        notify:
-          type: boolean
-      required:
-        - id
-        - time
-    UpdateDeviceLastConnectedResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use in updating a device's Last Connected timestamp. The ID of the affected record will be returned to the caller."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
-    UpdateDeviceLastReportedRequest:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update the Last Reported timestamp on a given device. If the notify property is set to true, the device service managing the device will receive a notification."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-        time:
-          type: integer
-        notify:
-          type: boolean
-      required:
-        - id
-        - time
-    UpdateDeviceLastReportedResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use in updating a device's Last Reported timestamp. The ID of the affected record will be returned to the caller."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
     UpdateDeviceRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update an existing device definition."
+      description: "A request to update an existing device definition. 'id' and 'deviceName' must be populated in order to identify the device. If the 'notify' property is set to true, the device service managing the device will receive a notification. Any other property that is populated in the request will be updated. Empty/blank properties will not be considered."
       type: object
       properties:
-        id:
-          type: string
-          format: uuid
-        deviceName:
-          type: string
-        serviceName:
-          type: string
-        profileName:
-          type: string
         adminState:
-          type: string
-        operatingState:
           type: string
         autoEvents:
           type: array
           items:
             $ref: '#/components/schemas/AutoEvent'
+        deviceName:
+          type: string
+        id:
+          type: string
+          format: uuid
+        lastConnected:
+          type: integer
+        lastReported:
+          type: integer
+        notify:
+          type: boolean
+        operatingState:
+          type: string
+        profileName:
+          type: string
         protocols:
           type: object
           additionalProperties:
             $ref: '#/components/schemas/ProtocolProperties'
+        serviceName:
+          type: string
       required:
         - id
         - deviceName
-        - serviceName
-        - profileName
-        - protocols
     UpdateDeviceResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
@@ -710,7 +669,7 @@ components:
     UpdateDeviceProfileRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update an existing device profile. When making this request, populate the ID and name properties."
+      description: "A request to update an existing device profile definition. 'id' and 'name' must be populated in order to identify the profile. Any other property that is populated in the request will be updated. Empty/blank properties will not be considered."
       type: object
       properties:
         profile:
@@ -729,61 +688,33 @@ components:
     UpdateDeviceServiceRequest:
       allOf:
         - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request to update an existing DeviceService"
+      description: "A request to update an existing device service definition. 'id' and 'deviceServiceName' must be populated in order to identify the service. Any other property that is populated in the request will be updated. Empty/blank properties will not be considered."
       type: object
       properties:
+        addressableName:
+          type: string
+        adminState:
+          description: "Can only be set to LOCKED or UNLOCKED"
+          type: string
+        deviceServiceName:
+          type: string
         id:
           type: string
           format: uuid
-        deviceServiceName:
-          type: string
-        addressableName:
-          type: string
-        operatingState:
-          description: "Can only be set to ENABLED or DISABLED"
-          type: string
         labels:
           type: array
           items:
             type: string
-        adminState:
-          description: "Can only be set to LOCKED or UNLOCKED"
-          type: string
-      required:
-        - id
-        - deviceServiceName
-        - addressableName
-        - operatingState
-        - adminState
-    UpdateDeviceServiceResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use in updating a device service. The ID of the affected record will be returned to the caller."
-      type: object
-      properties:
-        id:
-          type: string
-          format: uuid
-      required:
-        - id
-    UpdateOperatingStateRequest:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedRequest'
-      type: object
-      properties:
-        deviceId:
-          type: string
-          format: uuid
         operatingState:
           description: "Can only be set to ENABLED or DISABLED"
           type: string
       required:
-        - deviceId
-        - operatingState
-    UpdateOperatingStateResponse:
+        - id
+        - deviceServiceName
+    UpdateDeviceServiceResponse:
       allOf:
         - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use in updating a device's OperatingState. The ID of the affected record will be returned to the caller."
+      description: "A response type for use in updating a device service. The ID of the affected record will be returned to the caller."
       type: object
       properties:
         id:
@@ -842,8 +773,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddAddressableRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -853,40 +784,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddAddressableResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddAddressableResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddAddressableResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddAddressableResponse'
-    put:
+    patch:
       summary: "Allows updates to an existing addressable"
       requestBody:
         required: true
@@ -897,41 +795,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateAddressableRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAddressableResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAddressableResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAddressableResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1188,6 +1053,31 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddressableResponse'
+  /bulk:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+    post:
+      summary: "Accepts an arbitrary number of BulkRequest instances. Each BulkRequest has a 'content' property that holds a specific request type. This endpoint is operation agnostic will route the request to the appropriate handler implementation within the service."
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BulkRequest'
+      responses:
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BulkResponse'
   /device:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -1202,8 +1092,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddDeviceRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1213,40 +1103,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddDeviceResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceResponse'
-    put:
+    patch:
       summary: "Allows updates to an existing device"
       requestBody:
         required: true
@@ -1257,41 +1114,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateDeviceRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1468,122 +1292,6 @@ paths:
             application/json:
               schema:
                $ref: '#/components/schemas/DeviceResponse'
-  /device/lastconnected:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-    put:
-      summary: "Updates the 'last connected' timestamp for the specified device"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateDeviceLastConnectedRequest'
-      responses:
-        '200':
-          description: "Update successful"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastConnectedResponse'
-  /device/lastreported:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-    put:
-      summary: "Updates the 'last reported' timestamp for the specified device"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateDeviceLastReportedRequest'
-      responses:
-        '200':
-          description: "Update successful"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceLastReportedResponse'
   /device/name/{name}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -1898,41 +1606,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddDeviceProfileRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceProfileResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceProfileResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceProfileResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1953,41 +1628,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateDeviceProfileRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceProfileResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -2424,8 +2066,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddDeviceServiceRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -2435,51 +2077,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddDeviceServiceResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceServiceResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceServiceResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceServiceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddDeviceServiceResponse'
-    put:
+    patch:
       summary: "Allows updates to an existing device service"
       requestBody:
         required: true
@@ -2488,52 +2086,8 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateDeviceServiceRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
-        '409':
-          description: "The provided request conflicts with existing data"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateDeviceServiceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -2861,122 +2415,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceServiceResponse'
-  /deviceservice/adminstate:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-    put:
-      summary: "Update the AdminState for a specific device service"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateAdminStateRequest'
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAdminStateResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAdminStateResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAdminStateResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateAdminStateResponse'
-  /deviceservice/operatingstate:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-    put:
-      summary: "Update the OperatingState for a specific device service"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/UpdateOperatingStateRequest'
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateOperatingStateResponse'
   /ping:
     get:
       summary: "A simple 'ping' endpoint that can be used as a service healthcheck"

@@ -80,9 +80,8 @@ components:
           properties:
             binaryValue:
               description: "If the value of the reading is binary, it will be found in this property as a byte array"
-              type: array
-              items: 
-                type: object
+              type: string
+              format: byte
             mediaType:
               description: "E.g. MIME Type, indicates what the content type of the binaryValue property is if it's populated."
               type: string
