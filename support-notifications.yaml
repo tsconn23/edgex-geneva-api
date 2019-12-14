@@ -865,9 +865,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PingResponse'
+                $ref: '#/components/schemas/PingResponse'
         '500':
           description: "An unexpected error occurred on the server"
           headers:
@@ -876,9 +874,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PingResponse'
+                $ref: '#/components/schemas/PingResponse'
   /subscription:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
