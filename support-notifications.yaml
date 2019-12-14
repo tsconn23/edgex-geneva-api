@@ -134,9 +134,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -454,7 +456,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
-      summary: "Add a new Notification - slug (name) must be unique."
+      summary: "Add one or more notifications - slug (name) must be unique on each request."
       requestBody:
         required: true
         content:
@@ -464,41 +466,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddNotificationRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddNotificationResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddNotificationResponse'
-        '409':
-          description: "A specified notification slug (name) is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddNotificationResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -851,7 +820,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
-      summary: "Add a new Subscription - slug must be unique."
+      summary: "Add one or more new subscriptions - slug (name) must be unique on each request."
       requestBody:
         required: true
         content:
@@ -861,8 +830,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddSubscriptionRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -872,41 +841,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddSubscriptionResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddSubscriptionResponse'
-        '409':
-          description: "The specified subscription slug is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddSubscriptionResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddSubscriptionResponse'
-    put:
-      summary: "Update an existing Subscription. You might do this in order to add an additional channel if you want another endpoint/person to receive the notification."
+    patch:
+      summary: "Update one or more existing Subscriptions. You might do this in order to add an additional channel if you want another endpoint/person to receive the notification."
       requestBody:
         required: true
         content:
@@ -916,41 +852,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateSubscriptionRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateSubscriptionResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateSubscriptionResponse'
-        '409':
-          description: "The specified subscription slug is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateSubscriptionResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'

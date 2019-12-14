@@ -312,9 +312,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -750,6 +752,13 @@ components:
         format: uuid
       required: true
       example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
+    labelsParam:
+      in: query
+      name: labels
+      required: false
+      schema:
+        type: string
+      description: "Allows for querying a given object by associated user-defined label. More than one label may be specified via a comma-delimited list."
   headers:
     correlatedResponseHeader:
       description: "A response header that returns the unique correlation ID used to initiate the request."
@@ -774,7 +783,7 @@ paths:
                 $ref: '#/components/schemas/AddAddressableRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -796,7 +805,7 @@ paths:
                 $ref: '#/components/schemas/UpdateAddressableRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1068,7 +1077,7 @@ paths:
                 $ref: '#/components/schemas/BulkRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1093,7 +1102,7 @@ paths:
                 $ref: '#/components/schemas/AddDeviceRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1115,7 +1124,7 @@ paths:
                 $ref: '#/components/schemas/UpdateDeviceRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1130,8 +1139,9 @@ paths:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/labelsParam'
     get:
-      summary: "Given the entire range of devices sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      summary: "Given the entire range of devices sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Devices may also be filtered by label."
       responses:
         '200':
           description: "OK"
@@ -1357,53 +1367,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceResponse'
-  /device/label/{label}:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-      - name: label
-        in: path
-        required: true
-        schema:
-          type: string
-        description: "The label of the devices you wish to load."
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
-    get:
-      summary: "Returns all devices assigned to the specified label"
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceResponse'
   /device/profile/id/{id}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -1607,7 +1570,7 @@ paths:
                 $ref: '#/components/schemas/AddDeviceProfileRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1629,7 +1592,7 @@ paths:
                 $ref: '#/components/schemas/UpdateDeviceProfileRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -1639,13 +1602,66 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/UpdateDeviceProfileResponse'
+  /deviceprofile/uploadfile:
+    parameters:
+      - $ref: '#/components/parameters/correlatedRequestHeader'
+    post:
+      summary: "Allows creation of a new device profile via an uploaded YAML file"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                filename:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: "OK"
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
+        '400':
+          description: "Invalid request."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
+        '409':
+          description: "Conflict detected. Device name and command names must be universally unique."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
+        '500':
+          description: "An unexpected error happened on the server."
+          headers:
+            X-Correlation-ID:
+              $ref: '#/components/headers/correlatedResponseHeader'
+          content:
+            application/json:
+              schema:
+                  $ref: '#/components/schemas/AddDeviceProfileResponse'
   /deviceprofile/all:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/labelsParam'
     get:
-      summary: "Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      summary: "Given the entire range of device profiles sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Device profiles may also be filtered by label."
       responses:
         '200':
           description: "OK"
@@ -1994,64 +2010,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/DeviceProfileResponse'
-  /deviceprofile/label/{label}:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
-      - name: label
-        in: path
-        required: true
-        schema:
-          type: string
-        description: "A label applied to the device profiles in which you're interested."
-    get:
-      summary: "Find all DeviceProfiles having at least one label matching the label provided"
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceProfileResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceProfileResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceProfileResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceProfileResponse'
   /deviceservice:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -2067,7 +2025,7 @@ paths:
                 $ref: '#/components/schemas/AddDeviceServiceRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -2087,7 +2045,7 @@ paths:
               $ref: '#/components/schemas/UpdateDeviceServiceRequest'
       responses:
         '207':
-          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'code' property of each response in the returned array will indicate success or failure."
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -2102,8 +2060,9 @@ paths:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
+      - $ref: '#/components/parameters/labelsParam'
     get:
-      summary: "Given the entire range of device services sorted by last modified descending, returns a portion of that range according to the offset and limit parameters."
+      summary: "Given the entire range of device services sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Device services may also be filtered by label."
       responses:
         '200':
           description: "OK"
@@ -2357,64 +2316,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/DeviceServiceResponse'
-  /deviceservice/label/{label}:
-    parameters:
-      - $ref: '#/components/parameters/correlatedRequestHeader'
-      - $ref: '#/components/parameters/offsetParam'
-      - $ref: '#/components/parameters/limitParam'
-      - name: label
-        in: path
-        required: true
-        schema:
-          type: string
-        description: "A label applied to the device services in which you're interested."
-    get:
-      summary: "Find all DeviceServices having at least one label matching the label provided"
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceServiceResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceServiceResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceServiceResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DeviceServiceResponse'
   /ping:
     get:
       summary: "A simple 'ping' endpoint that can be used as a service healthcheck"

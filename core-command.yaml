@@ -96,9 +96,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -199,52 +201,8 @@ paths:
               items:
                 $ref: '#/components/schemas/IssueCommandRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IssueCommandResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                   $ref: '#/components/schemas/IssueCommandResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IssueCommandResponse'
-        '423':
-          description: "The device is locked (AdminState)"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/IssueCommandResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -322,51 +280,17 @@ paths:
     put:
       summary: "Issue the specified write command referenced by the command id to the device/sensor, also referenced by id."
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '423':
-          description: "The device is locked (AdminState)"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
   /device/name/{deviceName}/command/{commandName}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -433,51 +357,17 @@ paths:
     put:
       summary: "Issue the specified write command referenced by the command name to the device/sensor, also referenced by name."
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '423':
-          description: "The device is locked (AdminState)"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/IssueCommandResponse'
+                type: array
+                items:
+                  $ref: '#/components/schemas/IssueCommandResponse'
   /device/id/{id}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'

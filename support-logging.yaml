@@ -24,9 +24,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -187,13 +189,8 @@ paths:
               items:
                 $ref: '#/components/schemas/WriteLogEntryRequest'
       responses:
-        '204':
-          description: "OK. No content returned."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-        '400':
-          description: "Request is in an invalid state"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -213,7 +210,7 @@ paths:
       parameters:
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
-      summary: "Allows paginated retrieval of log entries, sorted by created timestamp descending."
+      summary: "Allows paginated retrieval of log entries matching the specified parameters, sorted by created timestamp descending."
       responses:
         '200':
           description: "OK"
@@ -238,7 +235,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/LogEntryResponse'
     delete:
-      summary: "Allows deletion of log entries within a given time range"
+      summary: "Allows deletion of log entries matching the specified parameters (levels, keywords, services, etc)"
       responses:
         '204':
           description: "Delete successful"

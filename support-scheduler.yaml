@@ -117,9 +117,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -397,7 +399,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
-      summary: "Add a new Interval - name must be unique."
+      summary: "Add one or more new Intervals - name on each request must be unique."
       requestBody:
         required: true
         content:
@@ -407,8 +409,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddIntervalRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -418,41 +420,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddIntervalResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalResponse'
-        '409':
-          description: "A specified interval name is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalResponse'
-    put:
-      summary: "Update an existing Interval"
+    patch:
+      summary: "Update one or more existing Intervals"
       requestBody:
         required: true
         content:
@@ -462,41 +431,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateIntervalRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalResponse'
-        '409':
-          description: "A specified interval name is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -689,7 +625,7 @@ paths:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
-      summary: "Add a new IntervalAction - name must be unique."
+      summary: "Add one or more new IntervalActions - name on each request must be unique."
       requestBody:
         required: true
         content:
@@ -699,8 +635,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddIntervalActionRequest'
       responses:
-        '200':
-          description: "OK"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -710,41 +646,8 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/AddIntervalActionResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalActionResponse'
-        '409':
-          description: "A specified interval action name is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalActionResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddIntervalActionResponse'
-    put:
-      summary: "Update an existing IntervalAction"
+    patch:
+      summary: "Update one or more existing IntervalActions"
       requestBody:
         required: true
         content:
@@ -754,41 +657,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateIntervalActionRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalActionResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalActionResponse'
-        '409':
-          description: "A specified interval action name is not unique."
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateIntervalActionResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'

@@ -120,9 +120,11 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        code:
+        statusCode:
+          description: "A numeric code signifying the operational status of the response."
           type: integer
         message:
+          description: "A field that can contain a free-form message, such as an error message."
           type: string
         version:
           description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
@@ -345,41 +347,8 @@ paths:
               items:
                 $ref: '#/components/schemas/AddEventRequest'
       responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddEventResponse'
-        '400':
-          description: "Request is in an invalid state"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddEventResponse'
-        '404':
-          description: "The device in the AddEventRequest does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/AddEventResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -494,15 +463,9 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EventResponse'
-  /event/checksum/{checksum}/pushed:
+  /event/pushed:
     parameters:
     - $ref: '#/components/parameters/correlatedRequestHeader'
-    - name: checksum
-      in: path
-      required: true
-      schema:
-        type: string
-      description: "checksum value of the event provided by core-data via the message bus"
     put:
       summary: "For an event with the supplied checksum value, update the pushed time indicating successful propogation to northside apps/services."
       requestBody:
@@ -514,30 +477,8 @@ paths:
               items:
                 $ref: '#/components/schemas/UpdateEventPushedByChecksumRequest'
       responses:
-        '200':
-          description: "Update successful"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UpdateEventPushedByChecksumResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
+        '207':
+          description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
           headers:
             X-Correlation-ID:
               $ref: '#/components/headers/correlatedResponseHeader'
@@ -724,7 +665,7 @@ paths:
                 type: array
                 items: 
                   $ref: '#/components/schemas/EventResponse'
-  /event/{start}/{end}/all:
+  /event/start/{start}/end/{end}:
     parameters:
     - $ref: '#/components/parameters/correlatedRequestHeader'
     - name: start
@@ -872,8 +813,14 @@ paths:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - $ref: '#/components/parameters/offsetParam'
       - $ref: '#/components/parameters/limitParam'
+      - in: query
+        name: labels
+        required: false
+        schema:
+          type: string
+        description: "Allows for querying readings by associated user-defined label. More than one label may be specified via a comma-delimited list."
     get:
-      summary: "Given the entire range of readings sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Readings returned will all inherit from BaseReading but their concrete types will be either SimpleReading or BinaryReading, potentially interleaved."
+      summary: "Given the entire range of readings sorted by last modified descending, returns a portion of that range according to the offset and limit parameters. Readings returned will all inherit from BaseReading but their concrete types will be either SimpleReading or BinaryReading, potentially interleaved. Readings may be filtered by label."
       responses:
         '200':
           description: "OK"
@@ -1020,53 +967,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/ReadingResponse'
-  /reading/label/{label}:
-    parameters:
-    - $ref: '#/components/parameters/correlatedRequestHeader'
-    - name: label
-      in: path
-      required: true
-      schema:
-        type: string
-      description: The label of the readings you wish to load.
-    - $ref: '#/components/parameters/offsetParam'
-    - $ref: '#/components/parameters/limitParam'
-    get:
-      summary: Returns a paginated list of readings assigned to the specified label.
-      responses:
-        '200':
-          description: "OK"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items: 
-                  $ref: '#/components/schemas/ReadingResponse'
-        '404':
-          description: "The requested resource does not exist"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReadingResponse'
-        '500':
-          description: "An unexpected error occurred on the server"
-          headers:
-            X-Correlation-ID:
-              $ref: '#/components/headers/correlatedResponseHeader'
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/ReadingResponse'
   /reading/type/{type}:
     parameters:
     - $ref: '#/components/parameters/correlatedRequestHeader'
@@ -1125,7 +1025,7 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/SimpleReadingResponse'
-  /reading/{start}/{end}/all:
+  /reading/start/{start}/end/{end}:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
       - name: start
