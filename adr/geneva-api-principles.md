@@ -21,7 +21,7 @@ Given a request to, for example, update a device the user should be able to upda
 **3.) Support multiple requests at once**
 Endpoints for the addition or updating of data (POST/PATCH) should accept multiple requests at once. If it were desirable to add or update multiple devices with one request, for example, the API should facilitate this.
 
-** 4.)Support multiple correlated responses at once**
+**4.)Support multiple correlated responses at once**
 Following from #3 above, each request sent to the endpoint must result in a corresponding response. In the case of HTTP/REST, this means if four requests are sent to a POST operation, the return payload will have four responses. Each response must expose a "code" property containing a numeric result for what occurred. These could be equivalent to HTTP status codes, for example. So while the overall call might succeed, one or more of the child requests may not have. It is up to the caller to examine each response and handle accordingly.
 
 In order to correlate each response to its original request, each request must be assigned its own ID (in GUID format). The caller can then tie a response to an individual request and handle the result accordingly, or otherwise track that a response to a given request was not received. 
