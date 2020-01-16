@@ -102,44 +102,6 @@ components:
           format: uuid
         slug:
           type: string
-    BulkRequest:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedRequest'
-      description: "A request type for use via the /bulk endpoint."
-      type: object
-      properties:
-        action:
-          description: "The HTTP verb applicable to the request type contained in the 'content' property (e.g. GET, PUT, POST, DELETE, PATCH)"
-          type: string
-        content:
-          description: "Contains a serialized request type as a byte array"
-          type: string
-          format: byte
-        dtoVersion:
-          description: "Indicates the version of the serialized request type contained in the 'content' property."
-          type: string
-        type:
-          description: "Indicates the type of the serialized blob in the 'content' property."
-          type: string
-    BulkResponse:
-      allOf:
-        - $ref: '#/components/schemas/CorrelatedResponse'
-      description: "A response type for use via the /bulk endpoint."
-      type: object
-      properties:
-        action:
-          description: "The HTTP verb applicable to the corresponding request type resulting in the given response (e.g. GET, PUT, POST, DELETE, PATCH)"
-          type: string
-        content:
-          description: "Contains a serialized response type as a byte array"
-          type: string
-          format: byte
-        dtoVersion:
-          description: "Indicates the version of the serialized response type contained in the 'content' property."
-          type: string
-        type:
-          description: "Indicates the type of the serialized blob in the 'content' property."
-          type: string
     Channel:
       description: "Defines the transport supported for a given notification."
       type: object
@@ -172,14 +134,9 @@ components:
           type: string
           format: uuid
           example: "e6e8a2f4-eb14-4649-9e2b-175247911369"
-        version:
-          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
-          type: string
-          example: "2.0.x"
       required:
         - correlationId
         - requestId
-        - version
     CorrelatedResponse:
       description: "Provides a correlation ID that can be used when grouping multiple responses into a single batch. For example, multiple notifications can be posted at once. The responses can be returned as a batch or individually. It doesn't matter as long as both of these properties are correctly set because either way the caller will have visibility into whether or not a response was obtained for every request in the batch."
       type: object
@@ -200,14 +157,9 @@ components:
         message:
           description: "A field that can contain a free-form message, such as an error message."
           type: string
-        version:
-          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
-          type: string
-          example: "2.0.x"
       required:
         - correlationId
         - requestId
-        - version
     Notification:
       description: "Defines the content included in a notification"
       type: object
@@ -266,6 +218,60 @@ components:
           description: "Outputs the current server timestamp in RFC1123 format"
           example: "Mon, 02 Jan 2006 15:04:05 MST"
           type: string
+    RequestEnvelope:
+      description: "A wrapper type for use when sending a request to the /batch endpoint. Each individual request type in the HTTP request should be wrapped in an envelope to facilitate instantiation of the correct routing handler. See property descriptions below for more details."
+      type: object
+      properties:
+        action:
+          type: string
+          description: "Indicates the type of operation applicable to the wrapped request. Valid values are 'create','read','update','delete', and 'command'"
+        content:
+          type: string
+          format: byte
+          description: "A byte array containing a marshalled request type instance. This is the specific, semantically identifiable request -- such as an AddDeviceRequest."
+        strategy:
+          type: string
+          description: "Indicates the expectation of whether a response should be produced synchronously or asynchronously. If asynchronously, desire for either a polling or push/callback should be provided. Valid values are 'sync','async-push','async-poll'"
+        type:
+          type: string
+          description: "The name of the type applicable to the request instance contained in the 'content' property."
+        version:
+          description: "Proposed field for explicitly defining version of request DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
+      required:
+        - action
+        - content
+        - strategy
+        - type
+        - version
+    ResponseEnvelope:
+      description: "A wrapper type for use when receiving a response from the /batch endpoint. Each individual response type in the HTTP response should be wrapped in an envelope to facilitate unmarshalling by the client. See property descriptions below for more details."
+      type: object
+      properties:
+        action:
+          type: string
+          description: "Indicates the type of operation applicable to the wrapped response. This should be recapitulated from the originating request. Valid values are 'create','read','update','delete', and 'command'"
+        content:
+          type: string
+          format: byte
+          description: "A byte array containing a marshalled response type instance. This is the specific, semantically identifiable response -- such as an AddDeviceResponse."
+        strategy:
+          type: string
+          description: "Recapitulates the expectation with regard to the delivery of response that was specified on the originating request. Valid values are 'sync','async-push','async-poll'"
+        type:
+          type: string
+          description: "The name of the type applicable to the response instance contained in the 'content' property."
+        version:
+          description: "Proposed field for explicitly defining version of response DTO. This is for advertising compatibility between a publisher/subscriber or requester/receiver"
+          type: string
+          example: "2.0.x"
+      required:
+        - action
+        - content
+        - strategy
+        - type
+        - version
     Subscription:
       description: "Define address information for a party interested in receiving notifications."
       type: object
@@ -446,11 +452,11 @@ components:
       required: true
       example: "14a42ea6-c394-41c3-8bcd-a29b9f5e6835"
 paths:
-  /bulk:
+  /batch:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'
     post:
-      summary: "Accepts an arbitrary number of BulkRequest instances. Each BulkRequest has a 'content' property that holds a specific request type. This endpoint is operation agnostic will route the request to the appropriate handler implementation within the service."
+      summary: "Accepts an arbitrary number of RequestEnvelope instances. Each RequestEnvelope has a 'content' property that holds a specific request type. This endpoint is operation agnostic will route the request to the appropriate handler implementation within the service."
       requestBody:
         required: true
         content:
@@ -458,7 +464,7 @@ paths:
             schema:
               type: array
               items:
-                $ref: '#/components/schemas/BulkRequest'
+                $ref: '#/components/schemas/RequestEnvelope'
       responses:
         '207':
           description: "Indicates a multi-part response supportive of accepting multiple requests at once. The 'statusCode' property of each response in the returned array will indicate success or failure."
@@ -470,7 +476,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/BulkResponse'
+                  $ref: '#/components/schemas/ResponseEnvelope'
   /cleanup:
     parameters:
       - $ref: '#/components/parameters/correlatedRequestHeader'

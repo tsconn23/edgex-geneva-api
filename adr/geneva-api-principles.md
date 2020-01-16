@@ -29,8 +29,8 @@ In order to correlate each response to its original request, each request must b
 **5.) Use of 207 HTTP Status (Multi-Result)**
 In the case where an endpoint can support multiple responses, the returned HTTP code from a REST API will be 207 (Multi-status)
 
-**6.) Each service should provide a "bulk" request endpoint**
-In addition to use-case specific endpoints that you'd find in any REST API, each service should provide a "bulk" endpoint that can take any kind of request. This is a generic endpoint that allows you to group requests of different types within a single call. For example, instead of having to call two endpoints to get two jobs done, you can call a single endpoint passing the specific requests and have them routed appropriately within the service. Also, when considering agnostic transport, the bulk endpoint would allow for the definition and handling of "GET" equivalent DTOs which are now implicit in the format of a URL.
+**6.) Each service should provide a "batch" request endpoint**
+In addition to use-case specific endpoints that you'd find in any REST API, each service should provide a "batch" endpoint that can take any kind of request. This is a generic endpoint that allows you to group requests of different types within a single call. For example, instead of having to call two endpoints to get two jobs done, you can call a single endpoint passing the specific requests and have them routed appropriately within the service. Also, when considering agnostic transport, the batch endpoint would allow for the definition and handling of "GET" equivalent DTOs which are now implicit in the format of a URL.
 
 **7.) GET endpoints returning a list of items must support pagination**
 URL parameters must be supported for every GET endpoint to support pagination. These parameters should indicate the current page of results and the number of results on a page.
